@@ -6,7 +6,8 @@ import { LayoutColumn } from "./components/atoms/layoutColumn";
 import { ChannelSettings } from "./components/channelSettings";
 import { ChannelMessages } from "./components/channelMessages";
 import { Button } from "./components/atoms/button";
-
+import { Provider } from "react-redux";
+import { store } from "./store/store";
 class App extends React.Component {
   render(): React.ReactNode {
     return (
@@ -21,11 +22,36 @@ class App extends React.Component {
             <LayoutColumn>
               <ChannelMessages
                 messages={[
-                  { id: "a", text: "Hej hej", author: "chatpro", time: new Date() },
-                  { id: "b", text: "Hello", author: "chatnoob", time: new Date() },
-                  { id: "c", text: "Hello", author: "chatnoob", time: new Date() },
-                  { id: "d", text: "Hello", author: "chatnoob", time: new Date() },
-                  { id: "e", text: "Hello", author: "chatnoob", time: new Date() },
+                  {
+                    id: "a",
+                    text: "Hej hej",
+                    author: "chatpro",
+                    time: new Date(),
+                  },
+                  {
+                    id: "b",
+                    text: "Hello",
+                    author: "chatnoob",
+                    time: new Date(),
+                  },
+                  {
+                    id: "c",
+                    text: "Hello",
+                    author: "chatnoob",
+                    time: new Date(),
+                  },
+                  {
+                    id: "d",
+                    text: "Hello",
+                    author: "chatnoob",
+                    time: new Date(),
+                  },
+                  {
+                    id: "e",
+                    text: "Hello",
+                    author: "chatnoob",
+                    time: new Date(),
+                  },
                 ]}
               />
             </LayoutColumn>
@@ -55,7 +81,12 @@ class App extends React.Component {
 }
 
 function render() {
-  ReactDOM.render(<App />, document.body);
+  ReactDOM.render(
+    <Provider store={store}>
+      <App />
+    </Provider>,
+    document.getElementById("root")
+  );
 }
 
 render();

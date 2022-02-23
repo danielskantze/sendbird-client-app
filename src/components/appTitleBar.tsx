@@ -1,4 +1,4 @@
-import * as React from "react";
+import React, { useState } from "react";
 import { LayoutColumn } from "./atoms/layoutColumn";
 import { LayoutRow } from "./atoms/layoutRow";
 import { EditAppSettingsModal } from "./modals/editAppSettings";
@@ -8,8 +8,8 @@ type AppTitleProps = {
 };
 
 export function AppTitleBar(props: AppTitleProps) {
-  const [appSettingsVisible, setAppSettingsVisible] = React.useState(false);
-
+  const [appSettingsVisible, setAppSettingsVisible] = useState(false);
+  
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const onClickAppSettings = (e: any) => {
     e.preventDefault();

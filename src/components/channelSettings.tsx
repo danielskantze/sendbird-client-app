@@ -1,82 +1,80 @@
-import * as React from "react";
-import { Button } from "./atoms/button";
-import { DropDown } from "./atoms/dropDown";
-import { LayoutColumn } from "./atoms/layoutColumn";
-import { LayoutRow } from "./atoms/layoutRow";
-import { EditChannelModal } from "./modals/editChannels";
-import { EditNicknamesModal } from "./modals/editNicknames";
+import React, { useState } from 'react';
+import { Button } from './atoms/button';
+import { DropDown, DropDownItem } from './atoms/dropDown';
+import { LayoutColumn } from './atoms/layoutColumn';
+import { LayoutRow } from './atoms/layoutRow';
+import { EditChannelModal } from './modals/editChannels';
+import { EditNicknamesModal } from './modals/editNicknames';
+import { ChannelDescriptor, selector as channelSettingsSelector } from '../store/slices/channelSettings';
+import { selector as nicknamesSettingsSelector } from '../store/slices/nicknameSettings';
+import { useAppSelector } from '../store/hooks';
+
+function channelsToDropDownItems(channels: Array<ChannelDescriptor>): Array<DropDownItem> {
+    return channels.map(c => ({ title: c.title, value: c.url } as DropDownItem));
+}
+
+function nicknamesToDropDownItems(channels: Array<string>): Array<DropDownItem> {
+    return channels.map(c => ({ title: c, value: c } as DropDownItem));
+}
 
 export function ChannelSettings() {
-  const [editNicknameVisible, setEditNicknameVisible] = React.useState(false);
-  const [editChannelsVisible, setEditChannelsVisible] = React.useState(false);
+    const [editNicknameVisible, setEditNicknameVisible] = useState(false);
+    const [editChannelsVisible, setEditChannelsVisible] = useState(false);
 
-  const onEditNicknames = () => {
-    setEditNicknameVisible(true);
-  };
+    const nicknameSettings = useAppSelector(nicknamesSettingsSelector);
+    const channelSettings = useAppSelector(channelSettingsSelector);
 
-  const onCloseEditNicknames = () => {
-    setEditNicknameVisible(false);
-  };
+    const onEditNicknames = () => {
+        setEditNicknameVisible(true);
+    };
 
-  const onSaveNicknames = () => {
-    setEditNicknameVisible(false);
-  };
+    const onCloseEditNicknames = () => {
+        setEditNicknameVisible(false);
+    };
 
-  const onEditChannels = () => {
-    setEditChannelsVisible(true);
-  };
+    const onSaveNicknames = () => {
+        setEditNicknameVisible(false);
+    };
 
-  const onCloseEditChannels = () => {
-    setEditChannelsVisible(false);
-  };
+    const onEditChannels = () => {
+        setEditChannelsVisible(true);
+    };
 
-  const onSaveChannels = () => {
-    setEditChannelsVisible(false);
-  };
+    const onCloseEditChannels = () => {
+        setEditChannelsVisible(false);
+    };
 
-  return (
-    <div>
-      {editNicknameVisible ? (
-        <EditNicknamesModal
-          onClose={onCloseEditNicknames}
-          onSave={onSaveNicknames}
-          nicknames={["chatpro", "bettan", "olofolof"]}
-        />
-      ) : (
-        ""
-      )}
-      {editChannelsVisible ? (
-        <EditChannelModal
-          onClose={onCloseEditChannels}
-          onSave={onSaveChannels}
-          channels={[{title: "Coupleness developer channel", url: "http://www.example.com"}]}
-        />
-      ) : (
-        ""
-      )}      
-      <LayoutRow extraClasses={["channel-settings"]}>
-        <LayoutColumn size={4}>
-          <DropDown
-            selectTitle="Select a channel"
-            buttonTitle="..."
-            options={[]}
-            onEdit={onEditChannels}
-          />
-        </LayoutColumn>
-        <LayoutColumn size={4}>
-          <DropDown
-            selectTitle="Select a nickname"
-            buttonTitle=" ... "
-            options={[]}
-            onEdit={onEditNicknames}
-          />
-        </LayoutColumn>
-        <LayoutColumn size={2} align="right">
-          <div className="float-right">
-            <Button title="Connect" />
-          </div>
-        </LayoutColumn>
-      </LayoutRow>
-    </div>
-  );
+    const onSaveChannels = () => {
+        setEditChannelsVisible(false);
+    };
+
+    return (
+        <div>
+            {editNicknameVisible ? <EditNicknamesModal onClose={onCloseEditNicknames} onSave={onSaveNicknames} /> : ''}
+            {editChannelsVisible ? <EditChannelModal onClose={onCloseEditChannels} onSave={onSaveChannels} /> : ''}
+            <LayoutRow extraClasses={['channel-settings']}>
+                <LayoutColumn size={4}>
+                    <DropDown
+                        selectTitle="Select a channel"
+                        buttonTitle="..."
+                        options={channelsToDropDownItems(channelSettings.channels)}
+                        onEdit={onEditChannels}
+                        />
+                </LayoutColumn>
+                <LayoutColumn size={4}>
+                    <DropDown
+                        selectTitle="Select a nickname"
+                        buttonTitle=" ... "
+                        options={nicknamesToDropDownItems(nicknameSettings.nicknames)}
+                        onEdit={onEditNicknames}
+                    />
+                </LayoutColumn>
+                <LayoutColumn size={2} align="right">
+                    <div className="float-right">
+                        <Button title="Connect" />
+                    </div>
+                </LayoutColumn>
+            </LayoutRow>
+        </div>
+    );
 }
