@@ -3,6 +3,7 @@ import * as React from "react";
 type ButtonProps = {
     type?: string,
     title: string,
+    disabled?: boolean,
     extraClasses?: Array<string>,
     onClick?: () => void
 };
@@ -24,6 +25,6 @@ export function Button(props:ButtonProps) {
         }
     }
   return (
-    <button className={classes.join(" ")} onClick={onClick}>{props.title}</button>
+    <button className={classes.join(" ")} disabled={props.disabled} onClick={onClick}>{props.title}</button>
   );
 }

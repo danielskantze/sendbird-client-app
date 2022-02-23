@@ -20,6 +20,7 @@ function nicknamesToDropDownItems(channels: Array<string>): Array<DropDownItem> 
 export function ChannelSettings() {
     const [editNicknameVisible, setEditNicknameVisible] = useState(false);
     const [editChannelsVisible, setEditChannelsVisible] = useState(false);
+    const [isConnected, setIsConnected] = useState(false);
 
     const nicknameSettings = useAppSelector(nicknamesSettingsSelector);
     const channelSettings = useAppSelector(channelSettingsSelector);
@@ -33,6 +34,7 @@ export function ChannelSettings() {
     };
 
     const onSaveNicknames = () => {
+        setIsConnected(false);
         setEditNicknameVisible(false);
     };
 
@@ -45,7 +47,12 @@ export function ChannelSettings() {
     };
 
     const onSaveChannels = () => {
+        setIsConnected(false);
         setEditChannelsVisible(false);
+    };
+
+    const onConnect = () => {
+        setIsConnected(true);
     };
 
     return (
@@ -71,7 +78,7 @@ export function ChannelSettings() {
                 </LayoutColumn>
                 <LayoutColumn size={2} align="right">
                     <div className="float-right">
-                        <Button title="Connect" />
+                        <Button title={isConnected ? "Disconnect" : "Connnect"} onClick={onConnect} />
                     </div>
                 </LayoutColumn>
             </LayoutRow>
