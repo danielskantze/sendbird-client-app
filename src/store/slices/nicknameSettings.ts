@@ -21,4 +21,5 @@ const slice = createSlice({
 
 export const { setNicknames } = slice.actions;
 export const reducer = slice.reducer;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const selector = (state: any) => state.nicknames;

@@ -26,4 +26,5 @@ const slice = createSlice({
 
 export const { setChannels } = slice.actions;
 export const reducer = slice.reducer;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const selector = (state: any) => state.channels;
