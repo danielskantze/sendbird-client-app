@@ -86,6 +86,7 @@ export function ChannelSettings() {
             {editChannelsVisible ? <EditChannelModal onClose={onCloseEditChannels} onSave={onSaveChannels} /> : ''}
             <LayoutRow extraClasses={['channel-settings']}>
                 <LayoutColumn size={4}>
+                    <label className="text-tiny">Channel</label>
                     <DropDown
                         selectTitle="Select a channel"
                         buttonTitle="..."
@@ -96,6 +97,7 @@ export function ChannelSettings() {
                         />
                 </LayoutColumn>
                 <LayoutColumn size={4}>
+                    <label className="text-tiny">Nickname</label>
                     <DropDown
                         selectTitle="Select a nickname"
                         buttonTitle=" ... "
