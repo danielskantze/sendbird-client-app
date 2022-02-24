@@ -1,14 +1,26 @@
-import { combineReducers, configureStore } from "@reduxjs/toolkit";
-import * as appSettings from "./slices/appSettings";
-import * as channelSettings from "./slices/channelSettings";
-import * as nicknameSettings from "./slices/nicknameSettings";
-import { BaseState } from "./slices/basetypes";
+import { combineReducers, configureStore, PayloadAction } from '@reduxjs/toolkit';
+import * as appSettings from './slices/appSettings';
+import * as channelSettings from './slices/channelSettings';
+import * as nicknameSettings from './slices/nicknameSettings';
+import { loadConfig } from '../services/config';
+import { BaseState } from './slices/basetypes';
 
 const reducer = combineReducers<BaseState>({
     app: appSettings.reducer,
     channels: channelSettings.reducer,
     nicknames: nicknameSettings.reducer
 });
+
+export async function initializeStore() {
+    const [appConfig, channelsConfig, nicknamesConfig] = await Promise.all([
+        loadConfig('app'),
+        loadConfig('channels'),
+        loadConfig('nicknames')
+    ]);
+    store.dispatch(appSettings.initialize(appConfig));
+    store.dispatch(channelSettings.initialize(channelsConfig));
+    store.dispatch(nicknameSettings.initialize(nicknamesConfig));
+}
 
 export const store = configureStore({ reducer });
 
