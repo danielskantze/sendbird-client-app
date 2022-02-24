@@ -64,17 +64,77 @@ h1 {
   justify-content: flex-end;
 }
 
-.edit-list tr {
-  width: 100%;
+.modal-container {
+  padding-top: 0.8rem;
+  padding-bottom: 0.4rem;
 }
 
-.edit-list th:last-child,
-.edit-list td:last-child {
+.modal-container .modal-header {
+  padding-bottom: 0;
+}
+
+.modal-lg .modal-container .modal-header {
+  padding: 0.8rem 0 0.4rem 0;
+}
+
+.modal-lg .modal-container .modal-body {
+  padding-left: 0;
+  padding-right: 0;
+}
+
+.modal-lg .modal-container .modal-footer {
+  padding: 0.4rem 0 0.8rem 0;
+}
+
+ul.edit-list {
+  width: 100%;
+  list-style: none;
+  margin: 0;
+}
+
+.edit-list li {
+  width: 100%;
+  max-width: 100%;
+  margin: 0.5em 0;
+  list-style: none;
+  display: flex;
+  flex-direction: row;
+}
+
+.edit-list li.add {
+  margin: 1em 0 0 0;
+}
+
+.edit-list li .value {
+  padding-left: 0.25em;
+}
+
+.edit-list li > :not(.action) {
+  flex: 1 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  margin-right: 0.5em;
+}
+
+.edit-list li > .nickname {
+  flex: 1 1;
+}
+
+.edit-list li > .name {
+  flex: 0.33 0.33;
+}
+
+.edit-list li > .url {
+  flex: 0.67 0.67;
+}
+
+.edit-list li > .action {
   width: 5em;
   text-align: center;
+  flex: 0 0;
 }
 
-.edit-list td:last-child > button,
-.edit-list th:last-child > button {
+.edit-list li .action button {
   width: 100%;
 }

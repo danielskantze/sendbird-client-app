@@ -35,6 +35,7 @@ export function EditAppSettingsModal(props: EditAppSettingsModalProps) {
   return (
     <ModalDialog
       title="Edit Sendbird app settings"
+      isLarge={false}
       onClose={props.onClose}
       onAction={onAction}
       content={

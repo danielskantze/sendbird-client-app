@@ -15,10 +15,58 @@ type EditNicknamesModalProps = {
 
 const SAVE_ACTION_ID = 'save';
 
+type ListingRowProps = {
+    nickname: string
+};
+
+function ListingRow(props:ListingRowProps) {
+    return (
+        <li>
+            <div className="nickname value" title={props.nickname}>{props.nickname}</div>
+            <div className="action"><Button title="delete" type="error" extraClasses={['btn-sm']} /></div>
+        </li>
+    );
+}
+
+type AddRowProps = {
+    onAddRow: (nickname:string) => void
+};
+
+function AddRow(props:AddRowProps) {
+    const [inputName, setInputName] = useState('');
+
+    const onChangeInputName = (e: React.FormEvent<HTMLInputElement>) => {
+        setInputName(e.currentTarget.value);
+    };
+
+    const onAddChannel = () => {
+        props.onAddRow(inputName);
+        setInputName('');
+    };
+
+    return (
+        <li key={'add'} className="add">
+            <div className="nickname">
+                <div className="form-group">
+                    <input
+                        className="form-input"
+                        type="text"
+                        placeholder="Name"
+                        value={inputName}
+                        onChange={onChangeInputName}
+                    />
+                </div>
+            </div>
+            <div className="action">
+                <Button title="add" onClick={onAddChannel} />
+            </div>
+        </li>
+    );
+}
+
 export function EditNicknamesModal(props: EditNicknamesModalProps) {
     const dispatch = useAppDispatch();
     const nicknameSettings: NicknameSettings = useAppSelector(nicknameSettingsSelector);
-    const [inputNickname, setInputNickname] = useState('');
     const [nicknames, setNicknames] = useState(nicknameSettings.nicknames);
 
     const onAction = (id: string) => {
@@ -30,51 +78,23 @@ export function EditNicknamesModal(props: EditNicknamesModalProps) {
         }
     };
 
-    const onChangeNickname = (e: React.FormEvent<HTMLInputElement>) => {
-        setInputNickname(e.currentTarget.value);
-    };
-
-    const onAddNickname = () => {
-        setNicknames(nicknames.concat([inputNickname]));
-        setInputNickname('');
+    const onAddNickname = (nickname:string) => {
+        setNicknames(nicknames.concat([nickname]));
     };
 
     return (
         <ModalDialog
             title="Edit nicknames"
+            isLarge={true}
             onClose={props.onClose}
             onAction={onAction}
             content={
-                <table className="table edit-list edit-nicknames-modal">
-                    <thead>
-                        <tr>
-                            <th></th>
-                            <th></th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {nicknames.map((nickname: string) => (
-                            <tr key={nickname}>
-                                <td>{nickname}</td>
-                                <td>
-                                    <Button title="delete" type="error" extraClasses={['btn-sm']} />
-                                </td>
-                            </tr>
-                        ))}
-                        <tr>
-                            <td>
-                                <form>
-                                    <div className="form-group">
-                                        <input className="form-input" type="text" placeholder="Nickname" value={inputNickname} onChange={onChangeNickname}/>
-                                    </div>
-                                </form>
-                            </td>
-                            <td>
-                                <Button title="add" onClick={onAddNickname}/>
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
+                <ul className="table edit-list edit-channels-modal">
+                    {nicknames.map(c => (
+                        <ListingRow key={c} nickname={c} />
+                    ))}
+                    <AddRow onAddRow={onAddNickname} />
+                </ul>
             }
             actions={[{ title: 'Save', id: SAVE_ACTION_ID }]}
         />
