@@ -33,7 +33,7 @@ export function ModalDialog(props: ModalDialogProps) {
     }
     const mainClasses = ["modal active"];
     const headerClasses = ["modal-title"];
-    let divider:any = '';
+    let divider:unknown = '';
     if (props.isLarge) {
         mainClasses.push("modal-lg");
         headerClasses.push("h3");

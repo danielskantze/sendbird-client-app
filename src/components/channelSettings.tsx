@@ -7,17 +7,30 @@ import { EditChannelModal } from './modals/editChannels';
 import { EditNicknamesModal } from './modals/editNicknames';
 import { ChannelDescriptor, selector as channelSettingsSelector } from '../store/slices/channelSettings';
 import { selector as nicknamesSettingsSelector } from '../store/slices/nicknameSettings';
-import { useAppSelector } from '../store/hooks';
+import { useAppDispatch, useAppSelector } from '../store/hooks';
+import {
+    UIState,
+    setSelectedChannelUrl,
+    setSelectedNickname,
+    selector as uiStateSelector,
+} from '../store/slices/uiState';
+
 
 function channelsToDropDownItems(channels: Array<ChannelDescriptor>): Array<DropDownItem> {
     return channels.map(c => ({ title: c.title, value: c.url } as DropDownItem));
 }
 
-function nicknamesToDropDownItems(channels: Array<string>): Array<DropDownItem> {
-    return channels.map(c => ({ title: c, value: c } as DropDownItem));
+function nicknamesToDropDownItems(nicknames: Array<string>): Array<DropDownItem> {
+    return nicknames.map(c => ({ title: c, value: c } as DropDownItem));
+}
+
+function dropdownItemWithValue(items: Array<DropDownItem>, value:string) {
+    return items.find(i => i.value === value);
 }
 
 export function ChannelSettings() {
+    const dispatch = useAppDispatch();
+    const uiState: UIState = useAppSelector(uiStateSelector);
     const [editNicknameVisible, setEditNicknameVisible] = useState(false);
     const [editChannelsVisible, setEditChannelsVisible] = useState(false);
     const [isConnected, setIsConnected] = useState(false);
@@ -51,10 +64,22 @@ export function ChannelSettings() {
         setEditChannelsVisible(false);
     };
 
+    const onSelectChannel = (item:DropDownItem) => {
+        dispatch(setSelectedChannelUrl(item.value));
+    }
+
+    const onSelectNickname = (item:DropDownItem) => {
+        dispatch(setSelectedNickname(item.value));
+    }
+
     const onConnect = () => {
         setIsConnected(true);
     };
 
+    const channelOptions = channelsToDropDownItems(channelSettings.channels);
+    const selectedChannelItem = dropdownItemWithValue(channelOptions, uiState.selectedChannelUrl);
+    const nicknameOptions = nicknamesToDropDownItems(nicknameSettings.nicknames);
+    const selectedNicknameItem = dropdownItemWithValue(nicknameOptions, uiState.selectedNickname);
     return (
         <div>
             {editNicknameVisible ? <EditNicknamesModal onClose={onCloseEditNicknames} onSave={onSaveNicknames} /> : ''}
@@ -64,16 +89,20 @@ export function ChannelSettings() {
                     <DropDown
                         selectTitle="Select a channel"
                         buttonTitle="..."
-                        options={channelsToDropDownItems(channelSettings.channels)}
+                        options={channelOptions}
+                        selectedValue={selectedChannelItem}
                         onEdit={onEditChannels}
+                        onSelect={onSelectChannel}
                         />
                 </LayoutColumn>
                 <LayoutColumn size={4}>
                     <DropDown
                         selectTitle="Select a nickname"
                         buttonTitle=" ... "
-                        options={nicknamesToDropDownItems(nicknameSettings.nicknames)}
+                        options={nicknameOptions}
+                        selectedValue={selectedNicknameItem}
                         onEdit={onEditNicknames}
+                        onSelect={onSelectNickname}
                     />
                 </LayoutColumn>
                 <LayoutColumn size={2} align="right">
