@@ -2,7 +2,6 @@
 
 ## Development
 
-- Add support for storing application state (not only config settings) through dedicated slice and file
 - Implement sendbird
 - Consider changing logic for add channel - trigger cancel confirm modal or do it apple style (i.e. remove save option)
 - Store fetched messages to disk?
