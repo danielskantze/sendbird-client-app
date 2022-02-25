@@ -79,6 +79,7 @@ function App() {
                     console.error('Connection failed', e);
                 });
         } else if (!uiState.isConnected && sharedServices.chat.isConnected) {
+            console.log("Should disconnect");
             sharedServices.chat
                 .disconnect()
                 .then(() => {

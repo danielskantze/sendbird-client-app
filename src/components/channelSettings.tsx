@@ -28,7 +28,6 @@ export function ChannelSettings() {
     const uiState: stateUi.UIState = useAppSelector(stateUi.selector);
     const [editNicknameVisible, setEditNicknameVisible] = useState(false);
     const [editChannelsVisible, setEditChannelsVisible] = useState(false);
-    const [isConnected, setIsConnected] = useState(false);
 
     const nicknameSettings = useAppSelector(nicknamesSettingsSelector);
     const channelSettings = useAppSelector(channelSettingsSelector);
@@ -42,7 +41,6 @@ export function ChannelSettings() {
     };
 
     const onSaveNicknames = () => {
-        setIsConnected(false);
         dispatch(stateUi.setIsConnected(false));
         setEditNicknameVisible(false);
     };
@@ -56,7 +54,6 @@ export function ChannelSettings() {
     };
 
     const onSaveChannels = () => {
-        setIsConnected(false);
         dispatch(stateUi.setIsConnected(false));
         setEditChannelsVisible(false);
     };
@@ -70,7 +67,6 @@ export function ChannelSettings() {
     }
 
     const onConnect = () => {
-        setIsConnected(true);
         dispatch(stateUi.setIsConnected(true));
     };
 
@@ -107,7 +103,7 @@ export function ChannelSettings() {
                 </LayoutColumn>
                 <LayoutColumn size={2} align="right">
                     <div className="float-right">
-                        <Button title={isConnected ? "Disconnect" : "Connnect"} onClick={onConnect} />
+                        <Button title={uiState.isConnected ? "Disconnect" : "Connnect"} onClick={onConnect} />
                     </div>
                 </LayoutColumn>
             </LayoutRow>

@@ -14,6 +14,23 @@ const initialState: UIState = {
     isConnected: false,
 };
 
+const PERSISTED_PROPERTIES = new Set<string>([ 
+    'selectedChannelUrl',
+    'selectedNickname'
+]);
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type KVUntyped = Record<string, any>;
+
+function persistedState(state:KVUntyped) {
+    const persistedKeys = Object.keys(state).filter(k => PERSISTED_PROPERTIES.has(k));
+    const persistedState:KVUntyped = {};
+    persistedKeys.forEach(k => {
+        persistedState[k] = state[k]
+    });
+    return persistedState as object;
+}
+
 const slice = createSlice({
     name: 'uistate',
     initialState,
@@ -21,12 +38,12 @@ const slice = createSlice({
         setSelectedChannelUrl: (state, action: PayloadAction<string>) => {
             console.log("setSelectedChannelUrl", action.payload);
             state.selectedChannelUrl = action.payload;
-            saveConfig('uistate', state);
+            saveConfig('uistate', persistedState(state));
         },
         setSelectedNickname: (state, action: PayloadAction<string>) => {
             console.log("setSelectedNickname", action.payload);
             state.selectedNickname = action.payload;
-            saveConfig('uistate', state);
+            saveConfig('uistate', persistedState(state));
         },
         setIsConnected: (state, action:PayloadAction<boolean>) => {
             console.log("setIsConnected", action.payload);
