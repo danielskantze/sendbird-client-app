@@ -3,6 +3,7 @@ import * as appSettings from './slices/appSettings';
 import * as channelSettings from './slices/channelSettings';
 import * as nicknameSettings from './slices/nicknameSettings';
 import * as uiState from './slices/uiState';
+import * as messages from './slices/messages';
 import { loadConfig } from '../services/config';
 import { BaseState } from './slices/basetypes';
 
@@ -10,7 +11,8 @@ const reducer = combineReducers<BaseState>({
     app: appSettings.reducer,
     channels: channelSettings.reducer,
     nicknames: nicknameSettings.reducer,
-    uistate: uiState.reducer
+    uistate: uiState.reducer,
+    messages: messages.reducer
 });
 
 type StoreInitItem = {
@@ -26,6 +28,7 @@ export async function initializeStore(configMutatorFn?:ConfigMutatorFn) {
         { slice: 'channels', actionFn: channelSettings.initialize },
         { slice: 'nicknames', actionFn: nicknameSettings.initialize },
         { slice: 'uistate', actionFn: uiState.initialize },
+        { slice: 'messages', actionFn: messages.clearMessages },
     ];
     let configs = await Promise.all(initItems.map(i => loadConfig(i.slice)));
     if (configMutatorFn) {

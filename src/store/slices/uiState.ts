@@ -5,15 +5,19 @@ import { BaseState } from './basetypes';
 export interface UIState extends BaseState {
     selectedChannelUrl: string;
     selectedNickname: string;
-    isConnected: boolean;
-    inChannel: boolean;
+    connectionStatus: ConnectionStatus;
+}
+
+export enum ConnectionStatus {
+    Disconnected = 1,
+    Connected,
+    JoinedChannel
 }
 
 const initialState: UIState = {
     selectedChannelUrl: '',
     selectedNickname: '',
-    isConnected: false,
-    inChannel: false,
+    connectionStatus: ConnectionStatus.Disconnected,
 };
 
 const PERSISTED_PROPERTIES = new Set<string>([ 
@@ -47,23 +51,22 @@ const slice = createSlice({
             state.selectedNickname = action.payload;
             saveConfig('uistate', persistedState(state));
         },
-        setIsConnected: (state, action:PayloadAction<boolean>) => {
-            console.log("setIsConnected", action.payload);
-            state.isConnected = action.payload;
-            // NOTE: We do not persist the connected state
+        setConnected:(state) => {
+            state.connectionStatus = ConnectionStatus.Connected;
         },
-        setInChannel: (state, action:PayloadAction<boolean>) => {
-            console.log("setIsInChannel", action.payload);
-            state.inChannel = action.payload;
-            // NOTE: We do not persist the connected state
-        },        
+        setDisconnected:(state) => {
+            state.connectionStatus = ConnectionStatus.Disconnected;
+        },
+        setJoinedChannel:(state) => {
+            state.connectionStatus = ConnectionStatus.JoinedChannel;
+        },
         initialize: (state, action: PayloadAction<object>) => {
             Object.assign(state, action.payload);
         },
     },
 });
 
-export const { setSelectedChannelUrl, setSelectedNickname, setIsConnected, setInChannel, initialize } = slice.actions;
+export const { setSelectedChannelUrl, setSelectedNickname, setConnected, setDisconnected, setJoinedChannel, initialize } = slice.actions;
 export const reducer = slice.reducer;
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const selector = (state: any) => state.uistate;
