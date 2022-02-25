@@ -2,14 +2,14 @@ import * as SendBird from 'sendbird';
 import * as Logger from '../util/logger';
 import { createSendbirdInstance } from './sendbirdWrapper';
 
-export type MessageHandlerFn = (userId:string, nickname:string, text:string) => void;
+export type MessageHandlerFn = (userId: string, nickname: string, text: string) => void;
 
 type AnyChannelType = SendBird.GroupChannel | SendBird.OpenChannel;
-type AnyMessageType = SendBird.UserMessage | SendBird.AdminMessage | SendBird.FileMessage;
+export type AnyMessageType = SendBird.UserMessage | SendBird.AdminMessage | SendBird.FileMessage;
 
 type OnMessageReceivedCallback = (channel: AnyChannelType, message: AnyMessageType) => void;
 
-function isUserMessage(message:AnyMessageType): boolean {
+function isUserMessage(message: AnyMessageType): boolean {
     return (message as SendBird.UserMessage).sender !== undefined;
 }
 
@@ -55,7 +55,7 @@ export class ChatService {
     canSend() {
         return this.isConnected && this._channel;
     }
-    connect(userId:string, nickname:string) {
+    connect(userId: string, nickname: string) {
         this._userId = userId;
         this._nickname = nickname;
         return new Promise<void>((resolve, reject) => {
@@ -79,7 +79,7 @@ export class ChatService {
             });
         });
     }
-    joinChannel(url:string) {
+    joinChannel(url: string) {
         this._chatUrl = url;
         return new Promise<void>((resolve, reject) => {
             if (!this._sendbird || !this.isConnected) {
@@ -102,7 +102,23 @@ export class ChatService {
             });
         });
     }
-    sendMessage(message:string) {
+    async loadMessages():Promise<Array<AnyMessageType>> {
+        const listQuery = this._channel.createPreviousMessageListQuery();
+        listQuery.limit = 30;
+        listQuery.reverse = false;
+        return new Promise((resolve, reject) => {
+            console.log("Should load");
+            listQuery.load(function (messageList, error) {
+                console.log("Loaded", messageList, error);
+                if (error) {
+                    reject(error);
+                } else {
+                    resolve(messageList);
+                }
+            });    
+        });
+    }
+    sendMessage(message: string) {
         return new Promise<void>((resolve, reject) => {
             if (!this.isConnected || !this._channel) {
                 reject(Error('Not connected'));
@@ -119,7 +135,10 @@ export class ChatService {
             });
         });
     }
-    setMessageHandler(handlerFn:MessageHandlerFn) {
+    hasMessageHandler(): boolean {
+        return !!this._channelHandlerId;
+    }
+    setMessageHandler(handlerFn: MessageHandlerFn) {
         if (!this.isConnected || !this._channel) {
             return;
         }
@@ -128,7 +147,7 @@ export class ChatService {
         }
         this._channelHandler = new this._sendbird.ChannelHandler();
         this._channelHandlerId = 'id_' + Date.now() + Math.floor(Math.random() * 100000);
-        const onMessageReceived:OnMessageReceivedCallback = (channel, message) => {
+        const onMessageReceived: OnMessageReceivedCallback = (channel, message) => {
             if (isUserMessage(message)) {
                 const userMessage = message as SendBird.UserMessage;
                 handlerFn(userMessage.sender.userId, userMessage.sender.nickname, userMessage.message);

@@ -63,6 +63,7 @@ function App() {
             sharedServices.chat
                 .disconnect()
                 .then(() => {
+                    dispatch(stateUi.setInChannel(false));
                     console.log('Disconnected successfully');
                 })
                 .catch(e => {
