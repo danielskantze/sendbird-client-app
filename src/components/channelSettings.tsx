@@ -8,12 +8,7 @@ import { EditNicknamesModal } from './modals/editNicknames';
 import { ChannelDescriptor, selector as channelSettingsSelector } from '../store/slices/channelSettings';
 import { selector as nicknamesSettingsSelector } from '../store/slices/nicknameSettings';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
-import {
-    UIState,
-    setSelectedChannelUrl,
-    setSelectedNickname,
-    selector as uiStateSelector,
-} from '../store/slices/uiState';
+import * as stateUi from '../store/slices/uiState';
 
 
 function channelsToDropDownItems(channels: Array<ChannelDescriptor>): Array<DropDownItem> {
@@ -30,7 +25,7 @@ function dropdownItemWithValue(items: Array<DropDownItem>, value:string) {
 
 export function ChannelSettings() {
     const dispatch = useAppDispatch();
-    const uiState: UIState = useAppSelector(uiStateSelector);
+    const uiState: stateUi.UIState = useAppSelector(stateUi.selector);
     const [editNicknameVisible, setEditNicknameVisible] = useState(false);
     const [editChannelsVisible, setEditChannelsVisible] = useState(false);
     const [isConnected, setIsConnected] = useState(false);
@@ -48,6 +43,7 @@ export function ChannelSettings() {
 
     const onSaveNicknames = () => {
         setIsConnected(false);
+        dispatch(stateUi.setIsConnected(false));
         setEditNicknameVisible(false);
     };
 
@@ -61,19 +57,21 @@ export function ChannelSettings() {
 
     const onSaveChannels = () => {
         setIsConnected(false);
+        dispatch(stateUi.setIsConnected(false));
         setEditChannelsVisible(false);
     };
 
     const onSelectChannel = (item:DropDownItem) => {
-        dispatch(setSelectedChannelUrl(item.value));
+        dispatch(stateUi.setSelectedChannelUrl(item.value));
     }
 
     const onSelectNickname = (item:DropDownItem) => {
-        dispatch(setSelectedNickname(item.value));
+        dispatch(stateUi.setSelectedNickname(item.value));
     }
 
     const onConnect = () => {
         setIsConnected(true);
+        dispatch(stateUi.setIsConnected(true));
     };
 
     const channelOptions = channelsToDropDownItems(channelSettings.channels);

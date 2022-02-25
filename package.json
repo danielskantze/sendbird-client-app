@@ -80,6 +80,7 @@
     "eslint-plugin-import": "^2.25.0",
     "fork-ts-checker-webpack-plugin": "^6.0.1",
     "node-loader": "^2.0.0",
+    "sendbird": "^3.1.8",
     "spectre.css": "^0.5.9",
     "style-loader": "^3.0.0",
     "ts-loader": "^9.2.2",
