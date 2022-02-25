@@ -1,4 +1,4 @@
-import React, { useContext, useEffect } from 'react';
+import React, { useContext, useEffect, useRef } from 'react';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import { SharedServices, SharedServicesContext } from '../appcontext';
 import { LayoutColumn } from './atoms/layoutColumn';
@@ -9,8 +9,8 @@ import { Message } from '../services/chat';
 import { ConnectionStatus } from '../store/slices/uiState';
 
 type MessageProps = {
-  message: Message
-}
+  message: Message;
+};
 
 function ChannelMessage(props: MessageProps) {
   return (
@@ -30,7 +30,9 @@ export function ChannelMessages() {
   const messages = useAppSelector(stateMessages.selector);
   const sharedServices = useContext(SharedServicesContext) as SharedServices;
   const dispatch = useAppDispatch();
-  const incomingMessageHandler = (message:Message) => {
+  const lastElementRef = useRef(null);
+
+  const incomingMessageHandler = (message: Message) => {
     dispatch(stateMessages.addMessage(message));
   };
 
@@ -61,14 +63,25 @@ export function ChannelMessages() {
   };
 
   useEffect(onConnectionStatusChange, [uiState]);
+  useEffect(() => {
+    if (lastElementRef && lastElementRef.current) {
+      lastElementRef.current.scrollIntoView();
+    }
+  }, [messages]);
 
   return (
     <LayoutRow>
       <LayoutColumn>
-        {messages.messages.map((m:Message, i:number) => (
+        {messages.messages.map((m: Message, i: number) => (
           <LayoutRow key={i}>
             <LayoutColumn size={11} align={i % 2 == 0 ? 'left' : 'right'}>
-              <ChannelMessage message={m} />
+              {i === messages.messages.length - 1 ? (
+                <span ref={lastElementRef}>
+                  <ChannelMessage message={m} />
+                </span>
+              ) : (
+                <ChannelMessage message={m} />
+              )}
             </LayoutColumn>
           </LayoutRow>
         ))}

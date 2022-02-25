@@ -155,9 +155,7 @@ export class ChatService {
     listQuery.limit = 30;
     listQuery.reverse = false;
     return new Promise((resolve, reject) => {
-      console.log('Should load');
       listQuery.load(function (messageList, error) {
-        console.log('Loaded', messageList, error);
         if (error) {
           reject(error);
         } else {

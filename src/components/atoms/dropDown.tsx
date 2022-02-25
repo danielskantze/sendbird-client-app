@@ -24,12 +24,10 @@ export function DropDown(props: DropDownProps) {
     );
     const onChange = (e: React.FormEvent<HTMLSelectElement>) => {
       const index = e.currentTarget.selectedIndex;
-      console.log("onChange", index);
         if (index > 0 && props.onSelect) {
             props.onSelect(props.options[index - 1]);
         }
     };
-    console.log(props.selectTitle, JSON.stringify(props.options));
     return (
         <div className="form-group">
             <div className="input-group">
