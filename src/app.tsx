@@ -1,4 +1,4 @@
-import React, { useContext, useEffect } from 'react';
+import React, { useEffect } from 'react';
 import * as ReactDOM from 'react-dom';
 import { AppTitleBar } from './components/appTitleBar';
 import { LayoutRow } from './components/atoms/layoutRow';
@@ -8,50 +8,13 @@ import { ChannelMessages } from './components/channelMessages';
 import { Button } from './components/atoms/button';
 import { Provider } from 'react-redux';
 import { store, initializeStore } from './store/store';
-import { ChatService } from './services/chat';
 import { generateRandomId } from './services/ids';
 
+import { SharedServices, SharedServicesContext } from './appcontext';
 import { useAppDispatch, useAppSelector } from './store/hooks';
-import * as stateChannels from './store/slices/channelSettings';
 import * as stateUi from './store/slices/uiState';
 import * as stateApp from './store/slices/appSettings';
-
-const DUMMY_MESSAGES = [
-    {
-        id: 'a',
-        text: 'Hej hej',
-        author: 'chatpro',
-        time: new Date(),
-    },
-    {
-        id: 'b',
-        text: 'Hello',
-        author: 'chatnoob',
-        time: new Date(),
-    },
-    {
-        id: 'c',
-        text: 'Hello',
-        author: 'chatnoob',
-        time: new Date(),
-    },
-    {
-        id: 'd',
-        text: 'Hello',
-        author: 'chatnoob',
-        time: new Date(),
-    },
-    {
-        id: 'e',
-        text: 'Hello',
-        author: 'chatnoob',
-        time: new Date(),
-    },
-];
-
-const sharedServices = {
-    chat: new ChatService(null),
-};
+import { ChatService } from './services/chat';
 
 function createChatId(appId:string, nickname:string) {
     return `${appId}_${nickname}`;
@@ -68,21 +31,17 @@ function firstTimeStoreInitFn(slice:string, config:object) {
     }
 }
 
-const SharedServicesContext = React.createContext(sharedServices);
+const sharedServices:SharedServices = {
+    chat: new ChatService(null),
+};
 
 function App() {
     const dispatch = useAppDispatch();
     const appState: stateApp.AppSettings = useAppSelector(stateApp.selector);
     const uiState: stateUi.UIState = useAppSelector(stateUi.selector);
-    const channelSettings: stateChannels.ChannelSettings = useAppSelector(stateChannels.selector);
 
-    useEffect(() => {
-        initializeStore(firstTimeStoreInitFn);
-    }, []);
-
-    useEffect(() => {
-        sharedServices.chat = new ChatService(appState.apiKey);
-    }, [appState]);
+    useEffect(() => { initializeStore(firstTimeStoreInitFn); }, []);
+    useEffect(() => { sharedServices.chat = new ChatService(appState.apiKey); }, [appState]);
 
     useEffect(() => {
         if (uiState.isConnected && !sharedServices.chat.isConnected) {
@@ -94,6 +53,7 @@ function App() {
                 })
                 .then(() => {
                     console.log("Joined successfully");
+                    dispatch(stateUi.setInChannel(true));
                 })
                 .catch(e => {
                     console.error('Connection failed', e);
@@ -122,7 +82,7 @@ function App() {
                 <div className="messages-area">
                     <LayoutRow>
                         <LayoutColumn>
-                            <ChannelMessages messages={DUMMY_MESSAGES} />
+                            <ChannelMessages />
                         </LayoutColumn>
                     </LayoutRow>
                 </div>

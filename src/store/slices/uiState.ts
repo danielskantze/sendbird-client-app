@@ -6,17 +6,19 @@ export interface UIState extends BaseState {
     selectedChannelUrl: string;
     selectedNickname: string;
     isConnected: boolean;
+    inChannel: boolean;
 }
 
 const initialState: UIState = {
     selectedChannelUrl: '',
     selectedNickname: '',
     isConnected: false,
+    inChannel: false,
 };
 
 const PERSISTED_PROPERTIES = new Set<string>([ 
     'selectedChannelUrl',
-    'selectedNickname'
+    'selectedNickname',
 ]);
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -50,13 +52,18 @@ const slice = createSlice({
             state.isConnected = action.payload;
             // NOTE: We do not persist the connected state
         },
+        setInChannel: (state, action:PayloadAction<boolean>) => {
+            console.log("setIsInChannel", action.payload);
+            state.inChannel = action.payload;
+            // NOTE: We do not persist the connected state
+        },        
         initialize: (state, action: PayloadAction<object>) => {
             Object.assign(state, action.payload);
         },
     },
 });
 
-export const { setSelectedChannelUrl, setSelectedNickname, setIsConnected, initialize } = slice.actions;
+export const { setSelectedChannelUrl, setSelectedNickname, setIsConnected, setInChannel, initialize } = slice.actions;
 export const reducer = slice.reducer;
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const selector = (state: any) => state.uistate;
