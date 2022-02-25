@@ -1,8 +1,6 @@
 import React, { useEffect } from 'react';
 import * as ReactDOM from 'react-dom';
 import { AppTitleBar } from './components/appTitle';
-import { LayoutRow } from './components/atoms/layoutRow';
-import { LayoutColumn } from './components/atoms/layoutColumn';
 import { ChannelSettings } from './components/channelSettings';
 import { ChannelMessages } from './components/messages';
 import { WriteArea } from './components/writeArea';
