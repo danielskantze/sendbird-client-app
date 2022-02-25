@@ -9,6 +9,7 @@ import { Button } from './components/atoms/button';
 import { Provider } from 'react-redux';
 import { store, initializeStore } from './store/store';
 import { ChatService } from './services/chat';
+import { generateRandomId } from './services/ids';
 
 import { useAppDispatch, useAppSelector } from './store/hooks';
 import * as stateChannels from './store/slices/channelSettings';
@@ -52,6 +53,21 @@ const sharedServices = {
     chat: new ChatService(null),
 };
 
+function createChatId(appId:string, nickname:string) {
+    return `${appId}_${nickname}`;
+}
+
+function firstTimeStoreInitFn(slice:string, config:object) {
+    if (slice === 'app' && !('installationId' in config)) {
+        return generateRandomId(8)
+            .then((randomId:string) => {
+                return Object.assign(config, { installationId: randomId});
+            });
+    } else {
+        return Promise.resolve(config);
+    }
+}
+
 const SharedServicesContext = React.createContext(sharedServices);
 
 function App() {
@@ -61,7 +77,7 @@ function App() {
     const channelSettings: stateChannels.ChannelSettings = useAppSelector(stateChannels.selector);
 
     useEffect(() => {
-        initializeStore();
+        initializeStore(firstTimeStoreInitFn);
     }, []);
 
     useEffect(() => {
@@ -70,10 +86,14 @@ function App() {
 
     useEffect(() => {
         if (uiState.isConnected && !sharedServices.chat.isConnected) {
+            const chatUserId = createChatId(appState.installationId, uiState.selectedNickname);
             sharedServices.chat
-                .connect(uiState.selectedChannelUrl, uiState.selectedNickname)
+                .connect(chatUserId, uiState.selectedNickname)
                 .then(() => {
-                    console.log('Connected successfully');
+                    return sharedServices.chat.joinChannel(uiState.selectedChannelUrl);
+                })
+                .then(() => {
+                    console.log("Joined successfully");
                 })
                 .catch(e => {
                     console.error('Connection failed', e);

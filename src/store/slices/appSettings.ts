@@ -4,10 +4,12 @@ import { BaseState } from "./basetypes";
 
 export interface AppSettings extends BaseState {
   apiKey: string;
+  installationId: string;
 }
 
 const initialState: AppSettings = {
   apiKey: "",
+  installationId: ''
 };
 
 const slice = createSlice({

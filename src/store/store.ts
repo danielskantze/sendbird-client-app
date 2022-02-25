@@ -1,4 +1,4 @@
-import { combineReducers, configureStore } from '@reduxjs/toolkit';
+import { combineReducers, configureStore, ActionCreatorWithOptionalPayload } from '@reduxjs/toolkit';
 import * as appSettings from './slices/appSettings';
 import * as channelSettings from './slices/channelSettings';
 import * as nicknameSettings from './slices/nicknameSettings';
@@ -13,17 +13,26 @@ const reducer = combineReducers<BaseState>({
     uistate: uiState.reducer
 });
 
-export async function initializeStore() {
-    const [appConfig, channelsConfig, nicknamesConfig, uiStateConfig] = await Promise.all([
-        loadConfig('app'),
-        loadConfig('channels'),
-        loadConfig('nicknames'),
-        loadConfig('uistate'),
-    ]);
-    store.dispatch(appSettings.initialize(appConfig));
-    store.dispatch(channelSettings.initialize(channelsConfig));
-    store.dispatch(nicknameSettings.initialize(nicknamesConfig));
-    store.dispatch(uiState.initialize(uiStateConfig));
+type StoreInitItem = {
+    slice: string,
+    actionFn: ActionCreatorWithOptionalPayload<object>
+};
+
+export type ConfigMutatorFn = (slice:string, config:object) => Promise<object>;
+
+export async function initializeStore(configMutatorFn?:ConfigMutatorFn) {
+    const initItems:Array<StoreInitItem> = [
+        { slice: 'app', actionFn: appSettings.initialize },
+        { slice: 'channels', actionFn: channelSettings.initialize },
+        { slice: 'nicknames', actionFn: nicknameSettings.initialize },
+        { slice: 'uistate', actionFn: uiState.initialize },
+    ];
+    let configs = await Promise.all(initItems.map(i => loadConfig(i.slice)));
+    if (configMutatorFn) {
+        configs = await Promise.all(configs.map((c, i) => configMutatorFn(initItems[i].slice, c)));
+    }
+    configs.map((c, i) => store.dispatch(initItems[i].actionFn(c)));
+    initItems.map(i => store.dispatch(i.actionFn));
 }
 
 export const store = configureStore({ reducer });

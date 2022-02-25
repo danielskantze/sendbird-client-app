@@ -26,4 +26,13 @@ contextBridge.exposeInMainWorld('electron', {
             ipcRenderer.invoke('app:save-config', { callId, key, data });
         });
     },
+    generateId: (length) => {
+        const callId = nextCallId();
+        return new Promise((resolve, reject) => {
+            ipcRenderer.once('app:' + callId, (event, arg) => {
+                resolve(arg);
+            });
+            ipcRenderer.invoke('app:generate-id', { callId, length });
+        });
+    }
 });
