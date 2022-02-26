@@ -7,6 +7,7 @@ import {
     selector as nicknameSettingsSelector,
 } from '../../store/slices/nicknameSettings';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
+import { TextField } from '../atoms/textField';
 
 type EditNicknamesModalProps = {
     onClose: () => void;
@@ -35,8 +36,8 @@ type AddRowProps = {
 function AddRow(props:AddRowProps) {
     const [inputName, setInputName] = useState('');
 
-    const onChangeInputName = (e: React.FormEvent<HTMLInputElement>) => {
-        setInputName(e.currentTarget.value);
+    const onChangeInputName = (text:string) => {
+        setInputName(text);
     };
 
     const onAddChannel = () => {
@@ -47,15 +48,7 @@ function AddRow(props:AddRowProps) {
     return (
         <li key={'add'} className="add">
             <div className="nickname">
-                <div className="form-group">
-                    <input
-                        className="form-input"
-                        type="text"
-                        placeholder="Name"
-                        value={inputName}
-                        onChange={onChangeInputName}
-                    />
-                </div>
+                <TextField label="API Key" value={inputName} onChange={onChangeInputName} />
             </div>
             <div className="action">
                 <Button title="add" onClick={onAddChannel} />

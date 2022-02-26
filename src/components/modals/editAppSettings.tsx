@@ -6,6 +6,7 @@ import {
   selector as appSettingsSelector,
 } from "../../store/slices/appSettings";
 import { useAppDispatch, useAppSelector } from "../../store/hooks";
+import { TextField } from "../atoms/textField";
 
 type EditAppSettingsModalProps = {
   onClose: () => void;
@@ -28,8 +29,8 @@ export function EditAppSettingsModal(props: EditAppSettingsModalProps) {
     }
   };
 
-  const onChange = (e: React.FormEvent<HTMLInputElement>) => {
-    setApiKey(e.currentTarget.value);
+  const onChange = (text:string) => {
+    setApiKey(text);
   };
 
   return (
@@ -40,16 +41,7 @@ export function EditAppSettingsModal(props: EditAppSettingsModalProps) {
       onAction={onAction}
       content={
         <form>
-          <div className="form-group">
-            <label className="form-label">API key</label>
-            <input
-              className="form-input"
-              type="text"
-              placeholder="Api key"
-              value={apiKey}
-              onChange={onChange}
-            />
-          </div>
+          <TextField label="API Key" value={apiKey} onChange={onChange} />
         </form>
       }
       actions={[{ title: "Save", id: SAVE_ACTION_ID }]}
