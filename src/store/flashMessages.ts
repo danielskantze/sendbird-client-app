@@ -23,7 +23,7 @@ export function createMessage(message:string, type:FlashMessageType, id?:string)
   }
 }
 
-export function messageFromError(error:Error, id?:string):FlashMessage {
+export function fromError(error:Error, id?:string):FlashMessage {
   return {
     id: id ? id : createId(),
     message: error.message,
@@ -39,6 +39,11 @@ export function createInfo(message:string, id?:string):FlashMessage {
 export function createWarning(message:string, id?:string):FlashMessage {
   return createMessage(message, FlashMessageType.Warning, id);
 }
+
+export function createError(message:string, id?:string):FlashMessage {
+  return createMessage(message, FlashMessageType.Error, id);
+}
+
 
 export function unwrapError(message:FlashMessage):object {
   if (message.type === FlashMessageType.Error && message.data) {

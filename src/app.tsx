@@ -14,7 +14,7 @@ import * as stateUi from './store/slices/uiState';
 import { ConnectionStatus } from './store/slices/uiState';
 import * as stateApp from './store/slices/appSettings';
 import { ChatService } from './services/chat';
-import { messageFromError } from './store/flashMessages';
+import * as flashMessages from './store/flashMessages';
 import { FlashMessage } from './components/atoms/flashMessage';
 
 function createChatId(appId: string, nickname: string) {
@@ -49,7 +49,8 @@ function App() {
       await chat.joinChannel(uiState.selectedChannelUrl);
       dispatch(stateUi.setJoinedChannel());
     } catch (e) {
-      dispatch(stateUi.addFlashMessage(messageFromError(e, "connect")));
+      dispatch(stateUi.addFlashMessage(flashMessages.createError("Unable to connect - make sure you are online and that your appKey is correct", "connect")));
+      dispatch(stateUi.setDisconnected());
     }
   };
 
@@ -59,7 +60,7 @@ function App() {
       await chat.disconnect();
       dispatch(stateUi.setDisconnected());
     } catch (e) {
-      dispatch(stateUi.addFlashMessage(messageFromError(e)));
+      dispatch(stateUi.addFlashMessage(flashMessages.fromError(e)));
     }
   };
 
@@ -91,7 +92,7 @@ function App() {
 
   useEffect(() => {
     initializeStore(firstTimeStoreInitFn).catch(e => {
-      dispatch(stateUi.addFlashMessage(messageFromError(e)));
+      dispatch(stateUi.addFlashMessage(flashMessages.fromError(e)));
     });
   }, []);
   useEffect(onAppstateChange, [appState]);

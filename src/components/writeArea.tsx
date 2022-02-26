@@ -8,7 +8,7 @@ import { Button } from './atoms/button';
 import { LayoutColumn } from './atoms/layoutColumn';
 import { LayoutRow } from './atoms/layoutRow';
 import { Message } from '../services/chat';
-import { messageFromError } from '../store/flashMessages';
+import * as flashMessages from '../store/flashMessages';
 
 export function WriteArea() {
   const dispatch = useAppDispatch();
@@ -33,7 +33,7 @@ export function WriteArea() {
           dispatch(stateMessages.addMessage(message));
         })
         .catch((e) => {
-          dispatch(stateUi.addFlashMessage(messageFromError(e, 'send-error')));
+          dispatch(stateUi.addFlashMessage(flashMessages.fromError(e, 'send-error')));
         });
       setText('');
     }
