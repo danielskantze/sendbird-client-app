@@ -109,7 +109,7 @@ export function ChannelMessages() {
     (<LayoutRow key={'load-more'}>
       <LayoutColumn extraClasses={['center']}>
         <span ref={firstElementRef}>
-          <Button title="Load more" extraClasses={['load-more-button']} onClick={onLoadMore} />
+          <Button title="Load more" extraClasses={['load-more-button', 'btn-sm']} onClick={onLoadMore} />
         </span>
       </LayoutColumn>
     </LayoutRow>) : 

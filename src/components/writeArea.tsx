@@ -44,6 +44,7 @@ export function WriteArea() {
       <LayoutColumn size={2} extraClasses={['write-actions']}>
         <Button 
           title="Send" 
+          type={canSend() ? 'primary': ''}
           disabled={!canSend()}
           onClick={onClickSend}
           />
