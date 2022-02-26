@@ -5,7 +5,7 @@ import { LayoutColumn } from './atoms/layoutColumn';
 import { LayoutRow } from './atoms/layoutRow';
 import * as stateUi from '../store/slices/uiState';
 import * as stateMessages from '../store/slices/messages';
-import { LoadMoreMessagesFn, Message, PreviousListQuery } from '../services/chat';
+import { Message, PreviousListQuery } from '../services/chat';
 import { ConnectionStatus } from '../store/slices/uiState';
 import { Button } from './atoms/button';
 
@@ -35,13 +35,15 @@ type PreviousListQueryWrapper = {
   query?: PreviousListQuery
 }
 
+let currentAction = Action.None;
+
 export function ChannelMessages() {
   const uiState = useAppSelector(stateUi.selector);
   const messages = useAppSelector(stateMessages.selector);
   const sharedServices = useContext(SharedServicesContext) as SharedServices;
   const dispatch = useAppDispatch();
   const lastElementRef = useRef(null);
-  const [currentAction, setCurrentAction] = useState(Action.None);
+  const firstElementRef = useRef(null);
   const emptyQuery:PreviousListQueryWrapper = {query: null};
   const [previousListQuery, setPreviousListQuery] = useState(emptyQuery);
   
@@ -82,6 +84,7 @@ export function ChannelMessages() {
   const onLoadMore = () => {
     const { chat } = sharedServices;
     const { query } = previousListQuery;
+    currentAction = Action.LoadMore;
     chat.loadPreviousMessages(query)
       .then((loadedMessages:Array<Message>) => {
         dispatch(stateMessages.addMessages(loadedMessages));
@@ -90,15 +93,24 @@ export function ChannelMessages() {
 
   useEffect(onConnectionStatusChange, [uiState]);
   useEffect(() => {
-    if (lastElementRef && lastElementRef.current) {
-      lastElementRef.current.scrollIntoView();
+    if (currentAction === Action.LoadMore) {
+      if (firstElementRef && firstElementRef.current) {
+        firstElementRef.current.scrollIntoView({behavior: "smooth"});
+      }  
+    } else {
+      if (lastElementRef && lastElementRef.current) {
+        lastElementRef.current.scrollIntoView({behavior: "smooth"});
+      }
     }
+    currentAction = Action.None;
   }, [messages]);
 
   const loadMoreButton = messages.messages.length > 0 ? 
     (<LayoutRow key={'load-more'}>
       <LayoutColumn extraClasses={['center']}>
-        <Button title="Load more" extraClasses={['load-more-button']} onClick={onLoadMore} />
+        <span ref={firstElementRef}>
+          <Button title="Load more" extraClasses={['load-more-button']} onClick={onLoadMore} />
+        </span>
       </LayoutColumn>
     </LayoutRow>) : 
     ('');
