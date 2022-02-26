@@ -49,7 +49,14 @@ function App() {
       await chat.joinChannel(uiState.selectedChannelUrl);
       dispatch(stateUi.setJoinedChannel());
     } catch (e) {
-      dispatch(stateUi.addFlashMessage(flashMessages.createError("Unable to connect - make sure you are online and that your appKey is correct", "connect")));
+      dispatch(
+        stateUi.addFlashMessage(
+          flashMessages.createError(
+            'Unable to connect - make sure you are online and that your appKey is correct',
+            'connect'
+          )
+        )
+      );
       dispatch(stateUi.setDisconnected());
     }
   };
@@ -112,7 +119,14 @@ function App() {
         </div>
         <div className="divider"></div>
         <div className="messages-area">
-          <ChannelMessages />
+          {uiState.connectionStatus === ConnectionStatus.JoinedChannel ? (
+            <ChannelMessages />
+          ) : (
+            <div className="empty not-connected-placeholder">
+              <p className="empty-title h5">You are not connected</p>
+              <p className="empty-subtitle">Select a channel, pick a nickname and connect</p>
+            </div>
+          )}
         </div>
         <div className="divider"></div>
         <div className="write-area">

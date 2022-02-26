@@ -43,6 +43,14 @@ h1 {
   margin-bottom: 0;
 }
 
+.not-connected-placeholder {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
 .center {
   margin: auto;
   text-align: center;

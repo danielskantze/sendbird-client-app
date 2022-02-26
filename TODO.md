@@ -2,11 +2,8 @@
 
 ## Development
 
-- Error screen
-- Connection status
-- Refactor input into own components
-- Refactor textarea into its own component
 - Design
+- Connection status
 - Animate scrolling when loading more
 - Message when no more messages to load
 - Filler message when no messages loaded
