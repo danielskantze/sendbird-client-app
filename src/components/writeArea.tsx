@@ -8,6 +8,7 @@ import { Button } from './atoms/button';
 import { LayoutColumn } from './atoms/layoutColumn';
 import { LayoutRow } from './atoms/layoutRow';
 import { Message } from '../services/chat';
+import { createWrappedError } from '../errors';
 
 export function WriteArea() {
   const dispatch = useAppDispatch();
@@ -30,6 +31,9 @@ export function WriteArea() {
       chat.sendMessage(text)
         .then((message:Message) => {
           dispatch(stateMessages.addMessage(message));
+        })
+        .catch((e) => {
+          dispatch(stateUi.addError(createWrappedError(e, 'send-error')));
         });
       setText('');
     }

@@ -20,6 +20,17 @@ body {
   padding: 0.5em;
 }
 
+.flash-messages {
+  position: fixed;
+  top: 0.5em;
+  left: 0.5em;
+  right: 0.5em;
+}
+
+.flash-messages > * {
+  margin: 0.5em 0;
+}
+
 .header-area {
   flex: 0 0;
 }

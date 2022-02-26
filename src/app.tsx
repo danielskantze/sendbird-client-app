@@ -14,98 +14,121 @@ import * as stateUi from './store/slices/uiState';
 import { ConnectionStatus } from './store/slices/uiState';
 import * as stateApp from './store/slices/appSettings';
 import { ChatService } from './services/chat';
+import { createWrappedError } from './errors';
+import { FlashMessage } from './components/atoms/flashMessage';
 
-function createChatId(appId:string, nickname:string) {
-    return `${appId}_${nickname}`;
+function createChatId(appId: string, nickname: string) {
+  return `${appId}_${nickname}`;
 }
 
-function firstTimeStoreInitFn(slice:string, config:object) {
-    if (slice === 'app' && !('installationId' in config)) {
-        return generateRandomId(8)
-            .then((randomId:string) => {
-                return Object.assign(config, { installationId: randomId});
-            });
-    } else {
-        return Promise.resolve(config);
-    }
+function firstTimeStoreInitFn(slice: string, config: object) {
+  if (slice === 'app' && !('installationId' in config)) {
+    return generateRandomId(8).then((randomId: string) => {
+      return Object.assign(config, { installationId: randomId });
+    });
+  } else {
+    return Promise.resolve(config);
+  }
 }
 
-const sharedServices:SharedServices = {
-    chat: new ChatService(null),
+const sharedServices: SharedServices = {
+  chat: new ChatService(null),
 };
 
 function App() {
-    const dispatch = useAppDispatch();
-    const appState: stateApp.AppSettings = useAppSelector(stateApp.selector);
-    const uiState: stateUi.UIState = useAppSelector(stateUi.selector);
+  const dispatch = useAppDispatch();
+  const appState: stateApp.AppSettings = useAppSelector(stateApp.selector);
+  const uiState: stateUi.UIState = useAppSelector(stateUi.selector);
 
-    const chatConnect = async () => {
-        const { chat } = sharedServices;
-        const chatUserId = createChatId(appState.installationId, uiState.selectedNickname);
-        await chat.connect(chatUserId, uiState.selectedNickname);
-        dispatch(stateUi.setConnected());
-        await chat.joinChannel(uiState.selectedChannelUrl);
-        dispatch(stateUi.setJoinedChannel());
-    };
+  const chatConnect = async () => {
+    const { chat } = sharedServices;
+    const chatUserId = createChatId(appState.installationId, uiState.selectedNickname);
+    try {
+      await chat.connect(chatUserId, uiState.selectedNickname);
+      dispatch(stateUi.setConnected());
+      await chat.joinChannel(uiState.selectedChannelUrl);
+      dispatch(stateUi.setJoinedChannel());
+    } catch (e) {
+      dispatch(stateUi.addError(createWrappedError(e, "connect")));
+    }
+  };
 
-    const chatDisconnect = async () => {
-        const { chat } = sharedServices;
-        await chat.disconnect();
-        dispatch(stateUi.setDisconnected());
-    };
+  const chatDisconnect = async () => {
+    const { chat } = sharedServices;
+    try {
+      await chat.disconnect();
+      dispatch(stateUi.setDisconnected());
+    } catch (e) {
+      dispatch(stateUi.addError(createWrappedError(e)));
+    }
+  };
 
-    const onConnectionStatusChange:React.EffectCallback = () => {
-        const { chat } = sharedServices;
-        const { connectionStatus } = uiState;
-        switch (connectionStatus) {
-            case ConnectionStatus.Connected:
-                if (!chat.isConnected) {
-                    chatConnect();
-                }
-                break;
-            case ConnectionStatus.Disconnected:
-                if (chat.isConnected) {
-                    chatDisconnect();
-                }
-                break;
+  const onConnectionStatusChange: React.EffectCallback = () => {
+    const { chat } = sharedServices;
+    const { connectionStatus } = uiState;
+    switch (connectionStatus) {
+      case ConnectionStatus.Connected:
+        if (!chat.isConnected) {
+          chatConnect();
         }
-    };
+        break;
+      case ConnectionStatus.Disconnected:
+        if (chat.isConnected) {
+          chatDisconnect();
+        }
+        break;
+    }
+    console.log(uiState);
+  };
 
-    const onAppstateChange:React.EffectCallback = () => {
-        sharedServices.chat = new ChatService(appState.apiKey);
-    };
+  const onAppstateChange: React.EffectCallback = () => {
+    sharedServices.chat = new ChatService(appState.apiKey);
+  };
 
-    useEffect(() => { initializeStore(firstTimeStoreInitFn); }, []);
-    useEffect(onAppstateChange, [appState]);
-    useEffect(onConnectionStatusChange, [uiState]);
+  const onAckError = (id: string) => {
+    dispatch(stateUi.clearError(id));
+  };
 
-    return (
-        <SharedServicesContext.Provider value={sharedServices}>
-            <div className="app">
-                <div className="header-area">
-                    <AppTitleBar title="Sendbird Chat Client" />
-                    <ChannelSettings />
-                </div>
-                <div className="divider"></div>
-                <div className="messages-area">
-                    <ChannelMessages />
-                </div>
-                <div className="divider"></div>
-                <div className="write-area">
-                    <WriteArea />
-                </div>
-            </div>
-        </SharedServicesContext.Provider>
-    );
+  useEffect(() => {
+    initializeStore(firstTimeStoreInitFn).catch(e => {
+      dispatch(stateUi.addError(createWrappedError(e)));
+    });
+  }, []);
+  useEffect(onAppstateChange, [appState]);
+  useEffect(onConnectionStatusChange, [uiState]);
+
+  return (
+    <SharedServicesContext.Provider value={sharedServices}>
+      <div className="app">
+        <div className="flash-messages">
+          {uiState.errors.map(e => (
+            <FlashMessage key={e.id} id={e.id} type="error" message={e.message} onClear={onAckError} />
+          ))}
+        </div>
+        <div className="header-area">
+          <AppTitleBar title="Sendbird Chat Client" />
+          <ChannelSettings />
+        </div>
+        <div className="divider"></div>
+        <div className="messages-area">
+          <ChannelMessages />
+        </div>
+        <div className="divider"></div>
+        <div className="write-area">
+          <WriteArea />
+        </div>
+      </div>
+    </SharedServicesContext.Provider>
+  );
 }
 
 function render() {
-    ReactDOM.render(
-        <Provider store={store}>
-            <App />
-        </Provider>,
-        document.getElementById('root')
-    );
+  ReactDOM.render(
+    <Provider store={store}>
+      <App />
+    </Provider>,
+    document.getElementById('root')
+  );
 }
 
 render();

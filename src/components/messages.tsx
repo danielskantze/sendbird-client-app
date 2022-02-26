@@ -8,10 +8,11 @@ import * as stateMessages from '../store/slices/messages';
 import { Message, PreviousListQuery } from '../services/chat';
 import { ConnectionStatus } from '../store/slices/uiState';
 import { Button } from './atoms/button';
+import { createWrappedError } from '../errors';
 
 enum Action {
   None,
-  LoadMore
+  LoadMore,
 }
 
 type MessageProps = {
@@ -20,7 +21,7 @@ type MessageProps = {
 
 function ChannelMessage(props: MessageProps) {
   return (
-    <div className="card chat-message" data-sender-id={props.message.senderId} >
+    <div className="card chat-message" data-sender-id={props.message.senderId}>
       <div className="card-header">
         <div className="tile-title">{props.message.nickname}</div>
       </div>
@@ -32,8 +33,8 @@ function ChannelMessage(props: MessageProps) {
 }
 
 type PreviousListQueryWrapper = {
-  query?: PreviousListQuery
-}
+  query?: PreviousListQuery;
+};
 
 let currentAction = Action.None;
 
@@ -44,7 +45,7 @@ export function ChannelMessages() {
   const dispatch = useAppDispatch();
   const lastElementRef = useRef(null);
   const firstElementRef = useRef(null);
-  const emptyQuery:PreviousListQueryWrapper = {query: null};
+  const emptyQuery: PreviousListQueryWrapper = { query: null };
   const [previousListQuery, setPreviousListQuery] = useState(emptyQuery);
   const [operatorIds, setOperatorIds] = useState(new Set<string>());
 
@@ -54,19 +55,27 @@ export function ChannelMessages() {
 
   const addMessageHandler = async () => {
     const { chat } = sharedServices;
-    const query = chat.createPreviousListQuery();
-    setPreviousListQuery({query});
-    const loadedMessages = (await chat.loadPreviousMessages(query)) as Array<Message>;
-    setOperatorIds(chat.operatorIds);
-    dispatch(stateMessages.setMessages(loadedMessages));
-    chat.setMessageHandler(incomingMessageHandler);
+    try {
+      const query = chat.createPreviousListQuery();
+      setPreviousListQuery({ query });
+      const loadedMessages = (await chat.loadPreviousMessages(query)) as Array<Message>;
+      setOperatorIds(chat.operatorIds);
+      dispatch(stateMessages.setMessages(loadedMessages));
+      chat.setMessageHandler(incomingMessageHandler);
+    } catch (e) {
+      dispatch(stateUi.addError(createWrappedError(e, 'load-messages-error')));
+    }
   };
 
   const onDisconnectHandler = async () => {
-    sharedServices.chat.clearMessageHandler();
-    setPreviousListQuery(emptyQuery);
-    setOperatorIds(new Set<string>());
-    dispatch(stateMessages.clearMessages());
+    try {
+      sharedServices.chat.clearMessageHandler();
+      setPreviousListQuery(emptyQuery);
+      setOperatorIds(new Set<string>());
+      dispatch(stateMessages.clearMessages());
+    } catch (e) {
+      dispatch(stateUi.addError(createWrappedError(e, 'clear-message-handler-error')));
+    }
   };
 
   const onConnectionStatusChange = () => {
@@ -87,9 +96,13 @@ export function ChannelMessages() {
     const { chat } = sharedServices;
     const { query } = previousListQuery;
     currentAction = Action.LoadMore;
-    chat.loadPreviousMessages(query)
-      .then((loadedMessages:Array<Message>) => {
+    chat
+      .loadPreviousMessages(query)
+      .then((loadedMessages: Array<Message>) => {
         dispatch(stateMessages.addMessages(loadedMessages));
+      })
+      .catch(e => {
+        dispatch(stateUi.addError(createWrappedError(e, 'load-more-messages-error')));
       });
   };
 
@@ -97,25 +110,28 @@ export function ChannelMessages() {
   useEffect(() => {
     if (currentAction === Action.LoadMore) {
       if (firstElementRef && firstElementRef.current) {
-        firstElementRef.current.scrollIntoView({behavior: "smooth"});
-      }  
+        firstElementRef.current.scrollIntoView({ behavior: 'smooth' });
+      }
     } else {
       if (lastElementRef && lastElementRef.current) {
-        lastElementRef.current.scrollIntoView({behavior: "smooth"});
+        lastElementRef.current.scrollIntoView({ behavior: 'smooth' });
       }
     }
     currentAction = Action.None;
   }, [messages]);
 
-  const loadMoreButton = messages.messages.length > 0 ? 
-    (<LayoutRow key={'load-more'}>
-      <LayoutColumn extraClasses={['center']}>
-        <span ref={firstElementRef}>
-          <Button title="Load more" extraClasses={['load-more-button', 'btn-sm']} onClick={onLoadMore} />
-        </span>
-      </LayoutColumn>
-    </LayoutRow>) : 
-    ('');
+  const loadMoreButton =
+    messages.messages.length > 0 ? (
+      <LayoutRow key={'load-more'}>
+        <LayoutColumn extraClasses={['center']}>
+          <span ref={firstElementRef}>
+            <Button title="Load more" extraClasses={['load-more-button', 'btn-sm']} onClick={onLoadMore} />
+          </span>
+        </LayoutColumn>
+      </LayoutRow>
+    ) : (
+      ''
+    );
 
   return (
     <LayoutRow>
