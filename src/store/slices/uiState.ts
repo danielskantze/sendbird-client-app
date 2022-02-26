@@ -1,5 +1,5 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { IError } from '../../errors';
+import { FlashMessage } from '../flashMessages';
 import { saveConfig } from '../../services/config';
 import { BaseState } from './basetypes';
 
@@ -7,7 +7,7 @@ export interface UIState extends BaseState {
   selectedChannelUrl: string;
   selectedNickname: string;
   connectionStatus: ConnectionStatus;
-  errors: Array<IError>;
+  errors: Array<FlashMessage>;
 }
 
 export enum ConnectionStatus {
@@ -60,25 +60,25 @@ const slice = createSlice({
     setJoinedChannel: state => {
       state.connectionStatus = ConnectionStatus.JoinedChannel;
     },
-    addError: (state, action: PayloadAction<IError>) => {
+    addFlashMessage: (state, action: PayloadAction<FlashMessage>) => {
       const error = action.payload;
       if (state.errors.find(e => e.id === error.id)) {
         return;
       }
       state.errors = state.errors.concat([action.payload]);
     },
-    clearError: (state, action: PayloadAction<IError | string>) => {
+    clearFlashMessage: (state, action: PayloadAction<FlashMessage | string>) => {
       let eId = '';
       const { payload } = action;
-      if ((payload as IError).id) {
-        eId = (action.payload as IError).id;
+      if ((payload as FlashMessage).id) {
+        eId = (action.payload as FlashMessage).id;
       } else {
         eId = payload as string;
       }
       const errors = state.errors.filter(e => e.id !== eId);
       state.errors = errors;
     },
-    clearErrors: state => {
+    clearFlashMessages: state => {
       state.errors = [];
     },
     initialize: (state, action: PayloadAction<object>) => {
@@ -93,9 +93,9 @@ export const {
   setConnected,
   setDisconnected,
   setJoinedChannel,
-  addError,
-  clearError,
-  clearErrors,
+  addFlashMessage,
+  clearFlashMessage,
+  clearFlashMessages,
   initialize,
 } = slice.actions;
 export const reducer = slice.reducer;

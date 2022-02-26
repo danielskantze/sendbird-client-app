@@ -8,7 +8,7 @@ import * as stateMessages from '../store/slices/messages';
 import { Message, PreviousListQuery } from '../services/chat';
 import { ConnectionStatus } from '../store/slices/uiState';
 import { Button } from './atoms/button';
-import { createWrappedError } from '../errors';
+import { messageFromError } from '../store/flashMessages';
 
 enum Action {
   None,
@@ -63,7 +63,7 @@ export function ChannelMessages() {
       dispatch(stateMessages.setMessages(loadedMessages));
       chat.setMessageHandler(incomingMessageHandler);
     } catch (e) {
-      dispatch(stateUi.addError(createWrappedError(e, 'load-messages-error')));
+      dispatch(stateUi.addFlashMessage(messageFromError(e, 'load-messages-error')));
     }
   };
 
@@ -74,7 +74,7 @@ export function ChannelMessages() {
       setOperatorIds(new Set<string>());
       dispatch(stateMessages.clearMessages());
     } catch (e) {
-      dispatch(stateUi.addError(createWrappedError(e, 'clear-message-handler-error')));
+      dispatch(stateUi.addFlashMessage(messageFromError(e, 'clear-message-handler-error')));
     }
   };
 
@@ -102,7 +102,7 @@ export function ChannelMessages() {
         dispatch(stateMessages.addMessages(loadedMessages));
       })
       .catch(e => {
-        dispatch(stateUi.addError(createWrappedError(e, 'load-more-messages-error')));
+        dispatch(stateUi.addFlashMessage(messageFromError(e, 'load-more-messages-error')));
       });
   };
 

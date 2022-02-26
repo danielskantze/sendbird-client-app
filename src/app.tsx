@@ -14,7 +14,7 @@ import * as stateUi from './store/slices/uiState';
 import { ConnectionStatus } from './store/slices/uiState';
 import * as stateApp from './store/slices/appSettings';
 import { ChatService } from './services/chat';
-import { createWrappedError } from './errors';
+import { messageFromError } from './store/flashMessages';
 import { FlashMessage } from './components/atoms/flashMessage';
 
 function createChatId(appId: string, nickname: string) {
@@ -49,7 +49,7 @@ function App() {
       await chat.joinChannel(uiState.selectedChannelUrl);
       dispatch(stateUi.setJoinedChannel());
     } catch (e) {
-      dispatch(stateUi.addError(createWrappedError(e, "connect")));
+      dispatch(stateUi.addFlashMessage(messageFromError(e, "connect")));
     }
   };
 
@@ -59,7 +59,7 @@ function App() {
       await chat.disconnect();
       dispatch(stateUi.setDisconnected());
     } catch (e) {
-      dispatch(stateUi.addError(createWrappedError(e)));
+      dispatch(stateUi.addFlashMessage(messageFromError(e)));
     }
   };
 
@@ -86,12 +86,12 @@ function App() {
   };
 
   const onAckError = (id: string) => {
-    dispatch(stateUi.clearError(id));
+    dispatch(stateUi.clearFlashMessage(id));
   };
 
   useEffect(() => {
     initializeStore(firstTimeStoreInitFn).catch(e => {
-      dispatch(stateUi.addError(createWrappedError(e)));
+      dispatch(stateUi.addFlashMessage(messageFromError(e)));
     });
   }, []);
   useEffect(onAppstateChange, [appState]);
