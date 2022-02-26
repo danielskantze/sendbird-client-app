@@ -15,6 +15,7 @@ export type Message = {
   message: string;
   nickname: string;
   type: MessageType;
+  senderId: string
 };
 
 type AnyChannelType = SendBird.GroupChannel | SendBird.OpenChannel;
@@ -36,35 +37,28 @@ function sbMessageToGeneralMessage(sbMessage: AnyMessageType): Message {
     message: '',
     nickname: '',
     type: MessageType.Unknown,
+    senderId: ''
   };
   if (sbMessage.isUserMessage) {
     const userMessage = sbMessage as SendBird.UserMessage;
     message.message = userMessage.message;
     message.nickname = userMessage.sender.nickname;
     message.type = MessageType.User;
+    message.senderId = userMessage.sender.userId
   } else if (sbMessage.isAdminMessage) {
     const adminMessage = sbMessage as SendBird.AdminMessage;
     message.message = adminMessage.message;
     message.type = MessageType.Admin;
+    message.senderId = '';
   } else if (sbMessage.isFileMessage) {
     const fileMessage = sbMessage as SendBird.FileMessage;
     message.message = '<FILE ATTACHMENT>';
     message.nickname = fileMessage.sender.nickname;
     message.type = MessageType.File;
+    message.senderId = fileMessage.sender.userId;
   }
   return message;
 }
-
-export function createMessage(nickname: string, text: string): Message {
-  return {
-    id: Date.now() + Math.floor(Math.random() * 10000000),
-    createdAt: Date.now(),
-    message: text,
-    nickname: nickname,
-    type: MessageType.User,
-  };
-}
-
 export class ChatService {
   private _chatAppId: string;
   private _chatUrl: string;
@@ -103,6 +97,12 @@ export class ChatService {
   }
   get chatAppId() {
     return this._chatAppId;
+  }
+  get operatorIds():Set<string> {
+    if (this._channel) {
+        return new Set(this._channel.operators.map(o => o.userId));
+    }
+    return new Set();
   }
   canSend() {
     return this.isConnected && this._channel;
@@ -171,9 +171,22 @@ export class ChatService {
         }
       });
     });
+  }  
+  async listOperators():Promise<Array<string>> {
+    const query = this._channel.createOperatorListQuery();
+    query.limit = 30;
+    return new Promise((resolve, reject) => {
+        query.next((userList:Array<SendBird.User>, error) => {
+            if (error) {
+                reject(error);
+            } else {
+                resolve(userList.map(u => u.userId));
+            }
+        });
+    })
   }
   sendMessage(message: string) {
-    return new Promise<void>((resolve, reject) => {
+    return new Promise<Message>((resolve, reject) => {
       if (!this.isConnected || !this._channel) {
         reject(Error('Not connected'));
         return;
@@ -185,7 +198,7 @@ export class ChatService {
           reject(error);
           return;
         }
-        resolve();
+        resolve(sbMessageToGeneralMessage(msg));
       });
     });
   }

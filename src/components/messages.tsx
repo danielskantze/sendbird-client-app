@@ -20,7 +20,7 @@ type MessageProps = {
 
 function ChannelMessage(props: MessageProps) {
   return (
-    <div className="card chat-message">
+    <div className="card chat-message" data-sender-id={props.message.senderId} >
       <div className="card-header">
         <div className="tile-title">{props.message.nickname}</div>
       </div>
@@ -46,7 +46,7 @@ export function ChannelMessages() {
   const firstElementRef = useRef(null);
   const emptyQuery:PreviousListQueryWrapper = {query: null};
   const [previousListQuery, setPreviousListQuery] = useState(emptyQuery);
-  
+  const [operatorIds, setOperatorIds] = useState(new Set<string>());
 
   const incomingMessageHandler = (message: Message) => {
     dispatch(stateMessages.addMessage(message));
@@ -57,6 +57,7 @@ export function ChannelMessages() {
     const query = chat.createPreviousListQuery();
     setPreviousListQuery({query});
     const loadedMessages = (await chat.loadPreviousMessages(query)) as Array<Message>;
+    setOperatorIds(chat.operatorIds);
     dispatch(stateMessages.setMessages(loadedMessages));
     chat.setMessageHandler(incomingMessageHandler);
   };
@@ -64,6 +65,7 @@ export function ChannelMessages() {
   const onDisconnectHandler = async () => {
     sharedServices.chat.clearMessageHandler();
     setPreviousListQuery(emptyQuery);
+    setOperatorIds(new Set<string>());
     dispatch(stateMessages.clearMessages());
   };
 
@@ -121,7 +123,7 @@ export function ChannelMessages() {
         {loadMoreButton}
         {messages.messages.map((m: Message, i: number) => (
           <LayoutRow key={i}>
-            <LayoutColumn size={11} align={i % 2 == 0 ? 'left' : 'right'}>
+            <LayoutColumn size={11} align={operatorIds.has(m.senderId) ? 'right' : 'left'}>
               {i === messages.messages.length - 1 ? (
                 <span ref={lastElementRef}>
                   <ChannelMessage message={m} />

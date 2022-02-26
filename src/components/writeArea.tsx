@@ -7,7 +7,7 @@ import * as stateUi from '../store/slices/uiState';
 import { Button } from './atoms/button';
 import { LayoutColumn } from './atoms/layoutColumn';
 import { LayoutRow } from './atoms/layoutRow';
-import { createMessage } from '../services/chat';
+import { Message } from '../services/chat';
 
 export function WriteArea() {
   const dispatch = useAppDispatch();
@@ -27,9 +27,10 @@ export function WriteArea() {
   const onClickSend = () => {
     const { chat } = sharedServices;
     if (canSend()) {
-      const message = createMessage(uiState.selectedNickname, text);
-      dispatch(stateMessages.addMessage(message));
-      chat.sendMessage(text);
+      chat.sendMessage(text)
+        .then((message:Message) => {
+          dispatch(stateMessages.addMessage(message));
+        });
       setText('');
     }
   };
