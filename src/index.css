@@ -32,6 +32,16 @@ h1 {
   margin-bottom: 0;
 }
 
+.center {
+  margin: auto;
+  text-align: center;
+}
+
+.center .load-more-button {
+  display: inline-block;
+  margin: 0.5rem 0;
+}
+
 .app-actions {
   display: flex;
   flex-direction: column;

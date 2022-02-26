@@ -3,10 +3,10 @@ import * as Logger from '../util/logger';
 import { createSendbirdInstance } from './sendbirdWrapper';
 
 export enum MessageType {
-    User = 1,
-    Admin, 
-    File,
-    Unknown
+  User = 1,
+  Admin,
+  File,
+  Unknown,
 }
 
 export type Message = {
@@ -23,42 +23,46 @@ export type AnyMessageType = SendBird.UserMessage | SendBird.AdminMessage | Send
 
 export type MessageHandlerFn = (message: Message) => void;
 
+export type LoadMoreMessagesFn = () => Promise<Array<Message>>;
+
+export type PreviousListQuery = SendBird.PreviousMessageListQuery;
+
 type OnMessageReceivedCallback = (channel: AnyChannelType, message: AnyMessageType) => void;
 
-function sbMessageToGeneralMessage(sbMessage:AnyMessageType):Message {
-    const message:Message = {
-        id: sbMessage.messageId,
-        createdAt: sbMessage.createdAt,
-        message: '',
-        nickname: '',
-        type: MessageType.Unknown
-    };
-    if (sbMessage.isUserMessage) {
-        const userMessage = sbMessage as SendBird.UserMessage;
-        message.message = userMessage.message;
-        message.nickname = userMessage.sender.nickname;
-        message.type = MessageType.User;
-    } else if (sbMessage.isAdminMessage) {
-        const adminMessage = sbMessage as SendBird.AdminMessage;
-        message.message = adminMessage.message;
-        message.type = MessageType.Admin;
-    } else if (sbMessage.isFileMessage) {
-        const fileMessage = sbMessage as SendBird.FileMessage;
-        message.message = '<FILE ATTACHMENT>';
-        message.nickname = fileMessage.sender.nickname;
-        message.type = MessageType.File;
-    }
-    return message;
+function sbMessageToGeneralMessage(sbMessage: AnyMessageType): Message {
+  const message: Message = {
+    id: sbMessage.messageId,
+    createdAt: sbMessage.createdAt,
+    message: '',
+    nickname: '',
+    type: MessageType.Unknown,
+  };
+  if (sbMessage.isUserMessage) {
+    const userMessage = sbMessage as SendBird.UserMessage;
+    message.message = userMessage.message;
+    message.nickname = userMessage.sender.nickname;
+    message.type = MessageType.User;
+  } else if (sbMessage.isAdminMessage) {
+    const adminMessage = sbMessage as SendBird.AdminMessage;
+    message.message = adminMessage.message;
+    message.type = MessageType.Admin;
+  } else if (sbMessage.isFileMessage) {
+    const fileMessage = sbMessage as SendBird.FileMessage;
+    message.message = '<FILE ATTACHMENT>';
+    message.nickname = fileMessage.sender.nickname;
+    message.type = MessageType.File;
+  }
+  return message;
 }
 
-export function createMessage(nickname:string, text:string):Message {
-    return {
-        id: Date.now() + Math.floor(Math.random() * 10000000),
-        createdAt: Date.now(),
-        message: text,
-        nickname: nickname,
-        type: MessageType.User
-    };
+export function createMessage(nickname: string, text: string): Message {
+  return {
+    id: Date.now() + Math.floor(Math.random() * 10000000),
+    createdAt: Date.now(),
+    message: text,
+    nickname: nickname,
+    type: MessageType.User,
+  };
 }
 
 export class ChatService {
@@ -150,11 +154,15 @@ export class ChatService {
       });
     });
   }
-  async loadMessages(): Promise<Array<Message>> {
+  createPreviousListQuery(): PreviousListQuery {
     const listQuery = this._channel.createPreviousMessageListQuery();
-    listQuery.limit = 30;
+    listQuery.limit = 10;
     listQuery.reverse = false;
+    return listQuery;
+  }
+  async loadPreviousMessages(listQuery: PreviousListQuery): Promise<Array<Message>> {
     return new Promise((resolve, reject) => {
+      console.log('Loading');
       listQuery.load(function (messageList, error) {
         if (error) {
           reject(error);
