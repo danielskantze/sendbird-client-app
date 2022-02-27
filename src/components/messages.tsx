@@ -5,7 +5,7 @@ import { LayoutColumn } from './atoms/layoutColumn';
 import { LayoutRow } from './atoms/layoutRow';
 import * as stateUi from '../store/slices/uiState';
 import * as stateMessages from '../store/slices/messages';
-import { Message, PreviousListQuery } from '../services/chat';
+import { Message, PreviousListQuery, MessageEventType } from '../services/chat';
 import { ConnectionStatus } from '../store/slices/uiState';
 import { Button } from './atoms/button';
 import * as flashMessages from '../store/flashMessages';
@@ -15,15 +15,71 @@ enum Action {
   LoadMore,
 }
 
+type MessageMenuItem = {
+  id: string;
+  title: string;
+};
+
+type MessageMenuItemsProps = {
+  items: Array<MessageMenuItem>;
+  onItemClick: (item: MessageMenuItem) => void;
+};
+
+function MessagePopover(props: MessageMenuItemsProps) {
+  function createClickFn(item: MessageMenuItem) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return (e: any) => {
+      e.preventDefault();
+      e.stopPropagation();
+      props.onItemClick(item);
+    };
+  }
+
+  return (
+    <div className="popover popover-right message-menu">
+      <div className="menu-button text text-primary">⋯</div>
+      <div className="popover-container">
+        <div className="card">
+          <div className="card-body">
+            {props.items.map(i => (
+              <div key={i.id} className="item" onClick={createClickFn(i)}>
+                {i.title}
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 type MessageProps = {
   message: Message;
+  hasMenu?: boolean;
+  onDeleteItem?: (messageId: number) => void;
 };
 
 function ChatMessage(props: MessageProps) {
+  let menu: JSX.Element = null;
+
+  if (props.hasMenu) {
+    const onMenuItemClick = (menuItem: MessageMenuItem) => {
+      console.log('Clicked item', menuItem.id);
+      if (menuItem.id === 'delete') {
+        console.assert(props.onDeleteItem, 'Missing onDeleteItem, this is an error');
+        if (props.onDeleteItem) {
+          props.onDeleteItem(props.message.id);
+        }
+      }
+    };
+    menu = <MessagePopover items={[{ id: 'delete', title: 'Delete' }]} onItemClick={onMenuItemClick} />;
+  }
+
   return (
     <div className="card chat-message" data-sender-id={props.message.senderId}>
       <div className="card-header">
         <div className="tile-title">{props.message.nickname}</div>
+        <div className="menu-button-container">{menu}</div>
       </div>
       <div className="card-body">
         <p>{props.message.message}</p>
@@ -49,8 +105,18 @@ export function ChatMessages() {
   const [previousListQuery, setPreviousListQuery] = useState(emptyQuery);
   const [operatorIds, setOperatorIds] = useState(new Set<string>());
 
-  const incomingMessageHandler = (message: Message) => {
-    dispatch(stateMessages.addMessage(message));
+  const incomingMessageHandler = (type: MessageEventType, messageId: number, message: Message) => {
+    switch (type) {
+      case MessageEventType.Added:
+        dispatch(stateMessages.addMessage(message));
+        break;
+      case MessageEventType.Updated:
+        dispatch(stateMessages.updateMessage(message));
+        break;
+      case MessageEventType.Deleted:
+        dispatch(stateMessages.deleteMessage(messageId));
+        break;
+    }
   };
 
   const addMessageHandler = async () => {
@@ -90,6 +156,13 @@ export function ChatMessages() {
         onDisconnectHandler();
         break;
     }
+  };
+
+  const onDeleteItem = (messageId: number) => {
+    const { chat } = sharedServices;
+    chat.deleteMessageWithId(messageId).catch(e => {
+      dispatch(stateUi.addFlashMessage(flashMessages.fromError(e)));
+    });
   };
 
   const onLoadMore = () => {
@@ -145,7 +218,11 @@ export function ChatMessages() {
                   <ChatMessage message={m} />
                 </span>
               ) : (
-                <ChatMessage message={m} />
+                <ChatMessage
+                  message={m}
+                  hasMenu={sharedServices.chat.userId === m.senderId}
+                  onDeleteItem={sharedServices.chat.userId === m.senderId ? onDeleteItem : null}
+                />
               )}
             </LayoutColumn>
           </LayoutRow>

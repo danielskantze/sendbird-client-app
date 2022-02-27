@@ -9,26 +9,34 @@ export enum MessageType {
   Unknown,
 }
 
+export enum MessageEventType {
+  Added,
+  Deleted,
+  Updated
+}
+
 export type Message = {
   id: number;
   createdAt: number;
   message: string;
   nickname: string;
   type: MessageType;
-  senderId: string
+  senderId: string;
 };
 
 type AnyChannelType = SendBird.GroupChannel | SendBird.OpenChannel;
 
 export type AnyMessageType = SendBird.UserMessage | SendBird.AdminMessage | SendBird.FileMessage;
 
-export type MessageHandlerFn = (message: Message) => void;
+export type MessageHandlerFn = (type:MessageEventType, messageId:number, message?: Message) => void;
 
 export type LoadMoreMessagesFn = () => Promise<Array<Message>>;
 
 export type PreviousListQuery = SendBird.PreviousMessageListQuery;
 
-type OnMessageReceivedCallback = (channel: AnyChannelType, message: AnyMessageType) => void;
+type OnMessageUpdateOrAddCallback = (channel: AnyChannelType, message: AnyMessageType) => void;
+
+type OnMessageDeleteCallback = (channel: AnyChannelType, messageId: number) => void;
 
 function sbMessageToGeneralMessage(sbMessage: AnyMessageType): Message {
   const message: Message = {
@@ -37,14 +45,14 @@ function sbMessageToGeneralMessage(sbMessage: AnyMessageType): Message {
     message: '',
     nickname: '',
     type: MessageType.Unknown,
-    senderId: ''
+    senderId: '',
   };
   if (sbMessage.isUserMessage) {
     const userMessage = sbMessage as SendBird.UserMessage;
     message.message = userMessage.message;
     message.nickname = userMessage.sender.nickname;
     message.type = MessageType.User;
-    message.senderId = userMessage.sender.userId
+    message.senderId = userMessage.sender.userId;
   } else if (sbMessage.isAdminMessage) {
     const adminMessage = sbMessage as SendBird.AdminMessage;
     message.message = adminMessage.message;
@@ -98,9 +106,9 @@ export class ChatService {
   get chatAppId() {
     return this._chatAppId;
   }
-  get operatorIds():Set<string> {
+  get operatorIds(): Set<string> {
     if (this._channel) {
-        return new Set(this._channel.operators.map(o => o.userId));
+      return new Set(this._channel.operators.map(o => o.userId));
     }
     return new Set();
   }
@@ -171,24 +179,24 @@ export class ChatService {
         }
       });
     });
-  }  
-  async listOperators():Promise<Array<string>> {
+  }
+  async listOperators(): Promise<Array<string>> {
     const query = this._channel.createOperatorListQuery();
     query.limit = 30;
     return new Promise((resolve, reject) => {
-        query.next((userList:Array<SendBird.User>, error) => {
-            if (error) {
-                reject(error);
-            } else {
-                resolve(userList.map(u => u.userId));
-            }
-        });
-    })
+      query.next((userList: Array<SendBird.User>, error) => {
+        if (error) {
+          reject(error);
+        } else {
+          resolve(userList.map(u => u.userId));
+        }
+      });
+    });
   }
   sendMessage(message: string) {
     return new Promise<Message>((resolve, reject) => {
       if (!this.isConnected || !this._channel) {
-        reject(Error('Not connected'));
+        reject(new Error('Not connected'));
         return;
       }
       const params = new this._sendbird.UserMessageParams();
@@ -202,6 +210,40 @@ export class ChatService {
       });
     });
   }
+  getMessage(messageId: number): Promise<AnyMessageType> {
+    const params = new this._sendbird.MessageRetrievalParams();
+    params.messageId = messageId;
+    params.channelType = 'open';
+    params.channelUrl = this._chatUrl;
+    return new Promise((resolve, reject) => {
+      this._sendbird.BaseMessage.getMessage(params, (message, error) => {
+        if (error) {
+          reject(error);
+        } else {
+          resolve(message);
+        }
+      });
+    });
+  }
+  _deleteMessage(message: any) {
+    const generalMessage = sbMessageToGeneralMessage(message);
+    return new Promise<Message>((resolve, reject) => {
+      this._channel.deleteMessage(message as any, (response, error) => {
+        if (error) {
+          reject(error);
+        } else {
+          resolve(generalMessage);
+        }
+      });
+    });
+  }
+  deleteMessageWithId(messageId: number): Promise<Message> {
+    if (!this.isConnected || !this._channel) {
+      Promise.reject(new Error('Not connected'));
+      return;
+    }
+    return this.getMessage(messageId).then(m => this._deleteMessage(m));
+  }
   hasMessageHandler(): boolean {
     return !!this._channelHandlerId;
   }
@@ -214,10 +256,20 @@ export class ChatService {
     }
     this._channelHandler = new this._sendbird.ChannelHandler();
     this._channelHandlerId = 'id_' + Date.now() + Math.floor(Math.random() * 100000);
-    const onMessageReceived: OnMessageReceivedCallback = (channel, message) => {
-      handlerFn(sbMessageToGeneralMessage(message));
+    const onMessageReceived: OnMessageUpdateOrAddCallback = (channel, message) => {
+      const gm = sbMessageToGeneralMessage(message);
+      handlerFn(MessageEventType.Added, gm.id, gm);
+    };
+    const onMessageDeleted: OnMessageDeleteCallback = (channel, messageId) => {
+      handlerFn(MessageEventType.Deleted, messageId);
+    };
+    const onMessageUpdated: OnMessageUpdateOrAddCallback = (channel, message) => {
+      const gm = sbMessageToGeneralMessage(message);
+      handlerFn(MessageEventType.Updated, gm.id, gm);
     };
     this._channelHandler.onMessageReceived = onMessageReceived;
+    this._channelHandler.onMessageDeleted = onMessageDeleted;
+    this._channelHandler.onMessageUpdated = onMessageUpdated;
     this._sendbird.addChannelHandler(this._channelHandlerId, this._channelHandler);
   }
   clearMessageHandler() {

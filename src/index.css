@@ -87,6 +87,39 @@ h1 {
   margin: 0.5em 0; 
 }
 
+.chat-message .menu-button-container {
+  float: right;
+}
+.chat-message .tile-title {
+  float: left;
+}
+
+.chat-message .menu-button {
+  cursor: default;
+  font-weight: bold;
+}
+
+.message-menu .item {
+  cursor: default;
+}
+
+.message-menu .popover-container {
+  width: auto;
+}
+
+.popover-container .card {
+  border: 1px solid #dadee4;
+  box-shadow: 0 0.2rem 0.5rem rgb(48 55 66 / 10%);
+}
+
+.popover-container .card-body {
+  padding: 0.5rem;
+}
+
+.popover-container .card-body:last-child {
+  padding-bottom: 0.5rem;
+}
+
 .write-actions {
   display: flex;
   flex-direction: column;

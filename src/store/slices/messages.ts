@@ -41,6 +41,22 @@ const slice = createSlice({
       deleteDuplicates(messages);
       state.messages = messages;
     },
+    updateMessage: (state, action: PayloadAction<Message>) => {
+      const message = action.payload;
+      const index = state.messages.findIndex(m => m.id === message.id);
+      if (index >= 0) {
+        state.messages[index] = message;
+        state.messages = state.messages.concat();
+      }
+    },
+    deleteMessage: (state, action: PayloadAction<number>) => {
+      const messageId = action.payload;
+      const index = state.messages.findIndex(m => m.id === messageId);
+      if (index >= 0) {
+        state.messages.splice(index, 1);
+        state.messages = state.messages.concat();
+      }
+    },
     setMessages: (state, action: PayloadAction<Array<Message>>) => {
       const messages = action.payload;
       state.messages = messages.concat();
@@ -54,7 +70,7 @@ const slice = createSlice({
   },
 });
 
-export const { addMessage, addMessages, setMessages, clearMessages, initialize } = slice.actions;
+export const { addMessage, addMessages, updateMessage, deleteMessage, setMessages, clearMessages, initialize } = slice.actions;
 export const reducer = slice.reducer;
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const selector = (state:any) => state.messages;
