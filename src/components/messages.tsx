@@ -19,7 +19,7 @@ type MessageProps = {
   message: Message;
 };
 
-function ChannelMessage(props: MessageProps) {
+function ChatMessage(props: MessageProps) {
   return (
     <div className="card chat-message" data-sender-id={props.message.senderId}>
       <div className="card-header">
@@ -38,7 +38,7 @@ type PreviousListQueryWrapper = {
 
 let currentAction = Action.None;
 
-export function ChannelMessages() {
+export function ChatMessages() {
   const uiState = useAppSelector(stateUi.selector);
   const messages = useAppSelector(stateMessages.selector);
   const sharedServices = useContext(SharedServicesContext) as SharedServices;
@@ -142,10 +142,10 @@ export function ChannelMessages() {
             <LayoutColumn size={11} align={operatorIds.has(m.senderId) ? 'right' : 'left'}>
               {i === messages.messages.length - 1 ? (
                 <span ref={lastElementRef}>
-                  <ChannelMessage message={m} />
+                  <ChatMessage message={m} />
                 </span>
               ) : (
-                <ChannelMessage message={m} />
+                <ChatMessage message={m} />
               )}
             </LayoutColumn>
           </LayoutRow>

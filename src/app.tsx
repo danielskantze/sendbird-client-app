@@ -2,7 +2,7 @@ import React, { useEffect } from 'react';
 import * as ReactDOM from 'react-dom';
 import { AppTitleBar } from './components/appTitle';
 import { ChannelSettings } from './components/channelSettings';
-import { ChannelMessages } from './components/messages';
+import { ChatMessages } from './components/messages';
 import { WriteArea } from './components/writeArea';
 import { Provider } from 'react-redux';
 import { store, initializeStore } from './store/store';
@@ -120,7 +120,7 @@ function App() {
         <div className="divider"></div>
         <div className="messages-area">
           {uiState.connectionStatus === ConnectionStatus.JoinedChannel ? (
-            <ChannelMessages />
+            <ChatMessages />
           ) : (
             <div className="empty not-connected-placeholder">
               <p className="empty-title h5">You are not connected</p>
