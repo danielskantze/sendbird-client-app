@@ -1,7 +1,7 @@
 html, 
 body {
   height: 100%;
-  min-width: 640px;
+  min-width: 800px;
 }
 
 #root {
@@ -36,11 +36,23 @@ body {
 }
 
 .app-titlebar {
-  padding: 2em 0;
+  padding: 0.25rem 0;
 }
 
-h1 {
+.app-titlebar h1, 
+.app-titlebar h2, 
+.app-titlebar h3, 
+.app-titlebar h4, 
+.app-titlebar h5 {
   margin-bottom: 0;
+}
+
+.divider.no-bottom-margin {
+  margin-bottom: 0;
+}
+
+.divider.no-top-margin {
+  margin-top: 0;
 }
 
 .not-connected-placeholder {

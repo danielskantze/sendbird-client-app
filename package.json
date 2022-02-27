@@ -1,8 +1,8 @@
 {
-  "name": "my-new-app",
-  "productName": "my-new-app",
+  "name": "sendbird-chat-client",
+  "productName": "Sendbird Chat Client",
   "version": "1.0.0",
-  "description": "My Electron application description",
+  "description": "Electron-based desktop client for Sendbirds chat SDK using open channels",
   "main": ".webpack/main",
   "scripts": {
     "start": "electron-forge start",

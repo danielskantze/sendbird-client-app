@@ -115,9 +115,10 @@ function App() {
         </div>
         <div className="header-area">
           <AppTitleBar title="Sendbird Chat Client" />
+          <div className="divider"></div>
           <ChannelSettings />
         </div>
-        <div className="divider"></div>
+        <div className="divider no-bottom-margin"></div>
         <div className="messages-area">
           {uiState.connectionStatus === ConnectionStatus.JoinedChannel ? (
             <ChatMessages />
@@ -128,7 +129,7 @@ function App() {
             </div>
           )}
         </div>
-        <div className="divider"></div>
+        <div className="divider no-top-margin"></div>
         <div className="write-area">
           <WriteArea />
         </div>
