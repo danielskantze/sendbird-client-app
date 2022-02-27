@@ -87,6 +87,16 @@ h1 {
   margin: 0.5em 0; 
 }
 
+.chat-message.owner {
+  background-color: #f0f0f0;
+  border-color: #f0f0f0;
+}
+
+.chat-message.operator {
+  background-color: #ffe0e0;
+  border-color: #ffe0e0;
+}
+
 .chat-message .menu-button-container {
   float: right;
 }

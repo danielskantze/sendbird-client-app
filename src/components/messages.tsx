@@ -55,14 +55,16 @@ function MessagePopover(props: MessageMenuItemsProps) {
 
 type MessageProps = {
   message: Message;
-  hasMenu?: boolean;
+  isOwner?: boolean;
+  isOperator?: boolean;
   onDeleteItem?: (messageId: number) => void;
 };
 
 function ChatMessage(props: MessageProps) {
   let menu: JSX.Element = null;
+  const extraClasses: Array<string> = [];
 
-  if (props.hasMenu) {
+  if (props.isOwner) {
     const onMenuItemClick = (menuItem: MessageMenuItem) => {
       console.log('Clicked item', menuItem.id);
       if (menuItem.id === 'delete') {
@@ -73,10 +75,15 @@ function ChatMessage(props: MessageProps) {
       }
     };
     menu = <MessagePopover items={[{ id: 'delete', title: 'Delete' }]} onItemClick={onMenuItemClick} />;
+    extraClasses.push('owner');
+  }
+
+  if (props.isOperator) {
+    extraClasses.push('operator');
   }
 
   return (
-    <div className="card chat-message" data-sender-id={props.message.senderId}>
+    <div className={['card', 'chat-message', ...extraClasses].join(' ')}>
       <div className="card-header">
         <div className="tile-title">{props.message.nickname}</div>
         <div className="menu-button-container">{menu}</div>
@@ -213,17 +220,14 @@ export function ChatMessages() {
         {messages.messages.map((m: Message, i: number) => (
           <LayoutRow key={i}>
             <LayoutColumn size={11} align={operatorIds.has(m.senderId) ? 'right' : 'left'}>
-              {i === messages.messages.length - 1 ? (
-                <span ref={lastElementRef}>
-                  <ChatMessage message={m} />
-                </span>
-              ) : (
+              <span ref={i === messages.messages.length - 1 ? lastElementRef : null}>
                 <ChatMessage
                   message={m}
-                  hasMenu={sharedServices.chat.userId === m.senderId}
+                  isOwner={sharedServices.chat.userId === m.senderId}
+                  isOperator={operatorIds.has(m.senderId)}
                   onDeleteItem={sharedServices.chat.userId === m.senderId ? onDeleteItem : null}
                 />
-              )}
+              </span>
             </LayoutColumn>
           </LayoutRow>
         ))}
