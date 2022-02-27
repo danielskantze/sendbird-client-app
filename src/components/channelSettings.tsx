@@ -101,7 +101,7 @@ export function ChannelSettings() {
             options={channelOptions}
             selectedValue={selectedChannelItem}
             extraCssClasses={['channel-selector']}
-            maxLength={48}
+            maxLength={46}
             onEdit={onRefreshChannel}
             onSelect={onSelectChannel}
           />
