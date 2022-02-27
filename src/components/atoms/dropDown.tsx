@@ -7,13 +7,25 @@ export type DropDownItem = {
 };
 
 type DropDownProps = {
-    buttonTitle: string;
-    selectTitle: string;
-    selectedValue?: DropDownItem;
-    options: Array<DropDownItem>;
-    onEdit?: () => void;
-    onSelect?: (val: DropDownItem) => void;
+    maxLength?: number,
+    buttonTitle: string | JSX.Element,
+    selectTitle: string,
+    selectedValue?: DropDownItem,
+    options: Array<DropDownItem>,
+    extraCssClasses?:Array<string>,
+    onEdit?: () => void,
+    onSelect?: (val: DropDownItem) => void,
 };
+
+function truncateToNChars(str:string, maxLength?:number) {
+    if (!maxLength) {
+        return str;
+    }
+    if (str.length -3 > maxLength) {
+        return str.substring(0, maxLength - 3) + "...";
+    }
+    return str;
+}
 
 export function DropDown(props: DropDownProps) {
     const { buttonTitle } = props;
@@ -28,14 +40,18 @@ export function DropDown(props: DropDownProps) {
             props.onSelect(props.options[index - 1]);
         }
     };
+    const mainCssClasses = ["form-group"];
+    if (props.extraCssClasses) {
+        mainCssClasses.push(...props.extraCssClasses);
+    }
     return (
-        <div className="form-group">
+        <div className={mainCssClasses.join(' ')}>
             <div className="input-group">
                 <select className="form-select" onChange={onChange} value={props.selectedValue ? props.selectedValue.value : ''}>
                     <option key={'--select--title--'}>{props.selectTitle}</option>
                     {props.options.map((o, i) => (
                         <option key={i} value={o.value}>
-                            {o.title}
+                            {truncateToNChars(o.title, props.maxLength)}
                         </option>
                     ))}
                 </select>

@@ -2,7 +2,7 @@ import * as React from "react";
 
 type ButtonProps = {
     type?: string,
-    title: string,
+    title: string | JSX.Element,
     disabled?: boolean,
     extraClasses?: Array<string>,
     onClick?: () => void

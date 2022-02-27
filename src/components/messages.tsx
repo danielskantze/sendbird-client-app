@@ -9,6 +9,7 @@ import { Message, PreviousListQuery, MessageEventType } from '../services/chat';
 import { ConnectionStatus } from '../store/slices/uiState';
 import { Button } from './atoms/button';
 import * as flashMessages from '../store/flashMessages';
+import { MoreIcon } from './icons/moreIcon';
 
 enum Action {
   None,
@@ -37,7 +38,7 @@ function MessagePopover(props: MessageMenuItemsProps) {
 
   return (
     <div className="popover popover-right message-menu">
-      <div className="menu-button text text-primary">⋯</div>
+      <div className="menu-button text text-primary"><MoreIcon /></div>
       <div className="popover-container">
         <div className="card">
           <div className="card-body">

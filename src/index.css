@@ -85,6 +85,23 @@ body {
   align-items: flex-end;
 }
 
+.channel-selector button {
+  line-height: 100%;
+  vertical-align: middle;
+}
+
+.channel-selector button > svg {
+  position: relative;
+  top: 2px;
+  left: 1px;
+}
+
+.channel-selector button:focus {
+  outline: none;
+  box-shadow: none;
+  background-color: white;
+}
+
 .messages-area {
   flex: 1 1;
   overflow: scroll;
@@ -149,12 +166,21 @@ body {
   justify-content: flex-end;
 }
 
+
 .modal-container {
   padding-top: 0.8rem;
   padding-bottom: 0.4rem;
 }
 
 .modal-container .modal-header {
+  padding-bottom: 0.3em;
+}
+
+.modal-container .modal-footer {
+  padding-top: 0;
+}
+
+.modal-container .modal-body {
   padding-bottom: 0;
 }
 
@@ -188,6 +214,16 @@ ul.edit-list {
 
 .edit-list li.add {
   margin: 1em 0 0 0;
+}
+
+ul.edit-channels-add {
+  margin-bottom: 1rem;
+}
+
+.edit-list li.add .action {
+  display: flex;
+  flex-direction: column;
+  justify-content: end;
 }
 
 .edit-list li .value {

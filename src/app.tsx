@@ -13,13 +13,9 @@ import { useAppDispatch, useAppSelector } from './store/hooks';
 import * as stateUi from './store/slices/uiState';
 import { ConnectionStatus } from './store/slices/uiState';
 import * as stateApp from './store/slices/appSettings';
-import { ChatService } from './services/chat';
+import { ChatService, createChatUserId } from './services/chat';
 import * as flashMessages from './store/flashMessages';
 import { FlashMessage } from './components/atoms/flashMessage';
-
-function createChatId(appId: string, nickname: string) {
-  return `${appId}_${nickname}`;
-}
 
 function firstTimeStoreInitFn(slice: string, config: object) {
   if (slice === 'app' && !('installationId' in config)) {
@@ -42,7 +38,7 @@ function App() {
 
   const chatConnect = async () => {
     const { chat } = sharedServices;
-    const chatUserId = createChatId(appState.installationId, uiState.selectedNickname);
+    const chatUserId = createChatUserId(appState.installationId, uiState.selectedNickname);
     try {
       await chat.connect(chatUserId, uiState.selectedNickname);
       dispatch(stateUi.setConnected());

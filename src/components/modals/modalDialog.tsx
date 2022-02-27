@@ -11,6 +11,7 @@ export interface ModalDialogProps {
     title: string;
     isLarge: boolean;
     content: React.ReactNode;
+    footerContent?: React.ReactNode;
     actions: Array<ModalDialogButtonAction>;
     onClose: () => void;
     onAction?: (actionId: string) => void;
@@ -42,7 +43,6 @@ export function ModalDialog(props: ModalDialogProps) {
         headerClasses.push("h5")
     }
 
-
     return (
         <div className={mainClasses.join(" ")}>
             <a href="#close" className="modal-overlay" aria-label="Close" onClick={onClickClose}></a>
@@ -61,6 +61,7 @@ export function ModalDialog(props: ModalDialogProps) {
                 </div>
                 {divider}
                 <div className="modal-footer">
+                    {props.footerContent || ''}
                     {props.actions.map(a => (
                         <Button key={a.id} title={a.title} onClick={createActionHandler(a.id)} />
                     ))}

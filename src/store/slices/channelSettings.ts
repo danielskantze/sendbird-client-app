@@ -3,7 +3,7 @@ import { saveConfig } from '../../services/config';
 import { BaseState } from './basetypes';
 
 export type ChannelDescriptor = {
-    title: string;
+    name: string;
     url: string;
 };
 

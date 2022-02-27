@@ -1,17 +1,25 @@
-import React, { useState } from 'react';
+import React, { useContext, useState } from 'react';
 import { Button } from './atoms/button';
 import { DropDown, DropDownItem } from './atoms/dropDown';
 import { LayoutColumn } from './atoms/layoutColumn';
 import { LayoutRow } from './atoms/layoutRow';
-import { EditChannelModal } from './modals/editChannels';
 import { EditNicknamesModal } from './modals/editNicknames';
-import { ChannelDescriptor, selector as channelSettingsSelector } from '../store/slices/channelSettings';
+import {
+  ChannelDescriptor,
+  setChannels as updateChannels,
+  selector as channelSettingsSelector,
+} from '../store/slices/channelSettings';
 import { selector as nicknamesSettingsSelector } from '../store/slices/nicknameSettings';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import * as stateUi from '../store/slices/uiState';
+import * as stateApp from '../store/slices/appSettings';
+import { SharedServices, SharedServicesContext } from '../appcontext';
+import { Channel, createChatUserId } from '../services/chat';
+import { RefreshIcon } from './icons/refreshIcon';
+import { MoreIcon } from './icons/moreIcon';
 
 function channelsToDropDownItems(channels: Array<ChannelDescriptor>): Array<DropDownItem> {
-  return channels.map(c => ({ title: c.title, value: c.url } as DropDownItem));
+  return channels.map(c => ({ title: c.name, value: c.url } as DropDownItem));
 }
 
 function nicknamesToDropDownItems(nicknames: Array<string>): Array<DropDownItem> {
@@ -24,9 +32,10 @@ function dropdownItemWithValue(items: Array<DropDownItem>, value: string) {
 
 export function ChannelSettings() {
   const dispatch = useAppDispatch();
+  const sharedServices = useContext(SharedServicesContext) as SharedServices;
   const uiState: stateUi.UIState = useAppSelector(stateUi.selector);
   const [editNicknameVisible, setEditNicknameVisible] = useState(false);
-  const [editChannelsVisible, setEditChannelsVisible] = useState(false);
+  const appState: stateApp.AppSettings = useAppSelector(stateApp.selector);
 
   const nicknameSettings = useAppSelector(nicknamesSettingsSelector);
   const channelSettings = useAppSelector(channelSettingsSelector);
@@ -44,17 +53,18 @@ export function ChannelSettings() {
     setEditNicknameVisible(false);
   };
 
-  const onEditChannels = () => {
-    setEditChannelsVisible(true);
-  };
-
-  const onCloseEditChannels = () => {
-    setEditChannelsVisible(false);
-  };
-
-  const onSaveChannels = () => {
-    dispatch(stateUi.setDisconnected());
-    setEditChannelsVisible(false);
+  const onRefreshChannel = async () => {
+    const { chat } = sharedServices;
+    const chatUserId = createChatUserId(appState.installationId, uiState.selectedNickname);
+    let channels:Array<Channel> = [];
+    if (!chat.isConnected) {
+      await chat.connect(chatUserId, uiState.selectedNickname);
+      channels = await chat.loadChannels();
+      await chat.disconnect();
+    } else {
+      channels = await chat.loadChannels();
+    }
+    dispatch(updateChannels(channels));
   };
 
   const onSelectChannel = (item: DropDownItem) => {
@@ -82,16 +92,17 @@ export function ChannelSettings() {
   return (
     <div>
       {editNicknameVisible ? <EditNicknamesModal onClose={onCloseEditNicknames} onSave={onSaveNicknames} /> : ''}
-      {editChannelsVisible ? <EditChannelModal onClose={onCloseEditChannels} onSave={onSaveChannels} /> : ''}
       <LayoutRow extraClasses={['channel-settings']}>
-        <LayoutColumn size={4}>
+        <LayoutColumn size={6}>
           <label className="text-tiny">Channel</label>
           <DropDown
             selectTitle="Select a channel"
-            buttonTitle="..."
+            buttonTitle={(<RefreshIcon size={18} />)}
             options={channelOptions}
             selectedValue={selectedChannelItem}
-            onEdit={onEditChannels}
+            extraCssClasses={['channel-selector']}
+            maxLength={48}
+            onEdit={onRefreshChannel}
             onSelect={onSelectChannel}
           />
         </LayoutColumn>
@@ -99,8 +110,9 @@ export function ChannelSettings() {
           <label className="text-tiny">Nickname</label>
           <DropDown
             selectTitle="Select a nickname"
-            buttonTitle=" ... "
+            buttonTitle={(<MoreIcon />)}
             options={nicknameOptions}
+            maxLength={24}
             selectedValue={selectedNicknameItem}
             onEdit={onEditNicknames}
             onSelect={onSelectNickname}

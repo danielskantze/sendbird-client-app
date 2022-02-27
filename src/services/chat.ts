@@ -24,6 +24,11 @@ export type Message = {
   senderId: string;
 };
 
+export type Channel = {
+  url: string,
+  name: string
+};
+
 type AnyChannelType = SendBird.GroupChannel | SendBird.OpenChannel;
 
 export type AnyMessageType = SendBird.UserMessage | SendBird.AdminMessage | SendBird.FileMessage;
@@ -66,6 +71,10 @@ function sbMessageToGeneralMessage(sbMessage: AnyMessageType): Message {
     message.senderId = fileMessage.sender.userId;
   }
   return message;
+}
+
+export function createChatUserId(baseId:string, suffix:string) {
+    return `${baseId}_${suffix}`;
 }
 export class ChatService {
   private _chatAppId: string;
@@ -135,6 +144,24 @@ export class ChatService {
             Logger.main.debug('Profile updated');
             resolve();
           });
+        }
+      });
+    });
+  }
+  loadChannels() {
+    if (!this.isConnected) {
+      return Promise.reject(new Error("Not connected"));
+    }
+    return new Promise<Array<Channel>>((resolve, reject) => {
+      const listQuery = this._sendbird.OpenChannel.createOpenChannelListQuery();
+      listQuery.next((sbChannels, error) => {
+        if (error) {
+          reject(error);
+        } else {
+          resolve(sbChannels.map(c => ({
+            url: c.url,
+            name: c.name
+          })));
         }
       });
     });
