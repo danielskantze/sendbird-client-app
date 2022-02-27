@@ -56,7 +56,7 @@ function AddRow(props: AddRowProps) {
   return (
     <li key={'add'} className="add">
       <div className="nickname">
-        <TextField label="API Key" value={inputName} onChange={onChangeInputName} />
+        <TextField label="Nickname" value={inputName} onChange={onChangeInputName} />
       </div>
       <div className="action">
         <Button title="add" onClick={onAddChannel} />

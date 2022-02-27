@@ -17,6 +17,31 @@ import { ChatService, createChatUserId } from './services/chat';
 import * as flashMessages from './store/flashMessages';
 import { FlashMessage } from './components/atoms/flashMessage';
 
+type NotConnectedPlaceholderProps = {
+  hasApplicationId: boolean;
+  hasChannel: boolean;
+  hasNickname: boolean;
+};
+
+function NotConnectedPlaceholder(props: NotConnectedPlaceholderProps) {
+  let instructions = '';
+  if (!props.hasApplicationId) {
+    instructions = 'Missing Sendbird application ID. Press App settings to set one up.';
+  } else if (!props.hasChannel) {
+    instructions = 'Missing channel. Please refresh your channels and pick one. ';
+  } else if (!props.hasNickname) {
+    instructions = 'Missing nickname. Please add a nickname and select one. ';
+  } else {
+    instructions = 'Hit Connect to start.';
+  }
+  return (
+    <div className="empty not-connected-placeholder">
+      <p className="empty-title h5">You are not connected</p>
+      <p className="empty-subtitle">{instructions}</p>
+    </div>
+  );
+}
+
 function firstTimeStoreInitFn(slice: string, config: object) {
   if (slice === 'app' && !('installationId' in config)) {
     return generateRandomId(8).then((randomId: string) => {
@@ -119,10 +144,11 @@ function App() {
           {uiState.connectionStatus === ConnectionStatus.JoinedChannel ? (
             <ChatMessages />
           ) : (
-            <div className="empty not-connected-placeholder">
-              <p className="empty-title h5">You are not connected</p>
-              <p className="empty-subtitle">Select a channel, pick a nickname and connect</p>
-            </div>
+            <NotConnectedPlaceholder
+              hasApplicationId={appState.applicationId.length > 0}
+              hasChannel={uiState.selectedChannelUrl.length > 0}
+              hasNickname={uiState.selectedNickname.length > 0}
+            />
           )}
         </div>
         <div className="divider no-top-margin"></div>

@@ -34,6 +34,7 @@ export function ModalDialog(props: ModalDialogProps) {
     }
     const mainClasses = ["modal active"];
     const headerClasses = ["modal-title"];
+    const footerClasses = ["modal-footer"];
     let divider:unknown = '';
     if (props.isLarge) {
         mainClasses.push("modal-lg");
@@ -41,6 +42,9 @@ export function ModalDialog(props: ModalDialogProps) {
         divider = <div className='divider'></div>;
     } else {
         headerClasses.push("h5")
+    }
+    if (props.footerContent) {
+        footerClasses.push('has-custom-footer-content');
     }
 
     return (
@@ -60,7 +64,7 @@ export function ModalDialog(props: ModalDialogProps) {
                     <div className="content">{props.content}</div>
                 </div>
                 {divider}
-                <div className="modal-footer">
+                <div className={footerClasses.join(' ')}>
                     {props.footerContent || ''}
                     {props.actions.map(a => (
                         <Button key={a.id} title={a.title} onClick={createActionHandler(a.id)} />

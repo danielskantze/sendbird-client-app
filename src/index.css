@@ -176,7 +176,7 @@ body {
   padding-bottom: 0.3em;
 }
 
-.modal-container .modal-footer {
+.modal-container .modal-footer.has-custom-footer-content {
   padding-top: 0;
 }
 
