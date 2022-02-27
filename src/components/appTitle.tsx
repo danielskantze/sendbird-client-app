@@ -26,14 +26,14 @@ export function AppTitleBar(props: AppTitleProps) {
   };
 
   return (
-    <div>
+    <div className="header-row">
       {appSettingsVisible ? <EditAppSettingsModal onClose={onModalClose} onSave={onModalSave}/> : ""}
       <LayoutRow extraClasses={["app-titlebar"]}>
         <LayoutColumn size={8} extraClasses={["app-title"]}>
           <h5>{props.title}</h5>
         </LayoutColumn>
         <LayoutColumn size={4} extraClasses={["app-actions"]}>
-          <a href="..." onClick={onClickAppSettings}>
+          <a className="text text-light" href="..." onClick={onClickAppSettings}>
             App settings
           </a>
         </LayoutColumn>

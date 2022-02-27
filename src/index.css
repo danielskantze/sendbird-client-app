@@ -17,7 +17,6 @@ body {
   align-items: stretch;
   align-content: stretch;
   height: 100%;
-  padding: 0.5em;
 }
 
 .flash-messages {
@@ -35,8 +34,14 @@ body {
   flex: 0 0;
 }
 
+.header-row {
+  padding: 0.5em;
+  background-color: #1EA896;
+  color: white;
+}
+
 .app-titlebar {
-  padding: 0.25rem 0;
+  padding: 0.5rem 0;
 }
 
 .app-titlebar h1, 
@@ -45,6 +50,10 @@ body {
 .app-titlebar h4, 
 .app-titlebar h5 {
   margin-bottom: 0;
+}
+
+.app-titlebar h5 {
+  font-weight: bold;
 }
 
 .divider.no-bottom-margin {
@@ -68,9 +77,14 @@ body {
   text-align: center;
 }
 
+.load-more {
+  margin-top: 1em;
+}
+
 .center .load-more-button {
   display: inline-block;
   margin: 0.5rem 0;
+  background-color: transparent;
 }
 
 .app-actions {
@@ -78,6 +92,10 @@ body {
   flex-direction: column;
   align-items: flex-end;
   justify-content: center;
+}
+
+.channel-settings-container {
+  margin: 0.5em 0.5em 0 0.5em;
 }
 
 .channel-settings {
@@ -105,37 +123,51 @@ body {
 .messages-area {
   flex: 1 1;
   overflow: scroll;
+  background-color: #f7f8f9;
 }
 
 .write-area {
   flex: 0 0;
-  margin: 0.5em 0 1em 0;
+  margin: 0.5em .5em 1em 0.5em;
 }
 
-.chat-message {
+.chat-message .card {
+  background-color: #4C5454;
+  color: white;
   margin: 0.5em 0; 
+  border-radius: 0.5rem;
 }
 
-.chat-message.owner {
-  background-color: #f0f0f0;
+.chat-message .card.owner {
+  background-color: #1EA896;
   border-color: #f0f0f0;
+  color: white;
 }
 
-.chat-message.operator {
-  background-color: #ffe0e0;
+.chat-message .card.operator {
+  background-color: #FF715B;
   border-color: #ffe0e0;
+  color: white;
 }
 
-.chat-message .menu-button-container {
-  float: right;
+.chat-message .header {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-top: 0.5rem;
 }
-.chat-message .tile-title {
-  float: left;
+
+.chat-message .nickname {
+  margin-left: 0.5rem;
+  font-weight: bold;
+  margin-right: 0.5rem;
 }
 
 .chat-message .menu-button {
   cursor: default;
   font-weight: bold;
+  margin-right: 0.5rem;
 }
 
 .message-menu .item {

@@ -136,7 +136,6 @@ function App() {
         </div>
         <div className="header-area">
           <AppTitleBar title="Sendbird Chat Client" />
-          <div className="divider"></div>
           <ChannelSettings />
         </div>
         <div className="divider no-bottom-margin"></div>

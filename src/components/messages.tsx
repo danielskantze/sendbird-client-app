@@ -65,6 +65,13 @@ function ChatMessage(props: MessageProps) {
   let menu: JSX.Element = null;
   const extraClasses: Array<string> = [];
 
+  function formatDate(epoch:number) {
+    const date = new Date(epoch);
+    const dateStr = JSON.stringify(date).split('T')[0].substring(1);
+    const timeStr = date.toLocaleTimeString();
+    return dateStr + " " + timeStr;
+  }
+
   if (props.isOwner) {
     const onMenuItemClick = (menuItem: MessageMenuItem) => {
       console.log('Clicked item', menuItem.id);
@@ -84,14 +91,19 @@ function ChatMessage(props: MessageProps) {
   }
 
   return (
-    <div className={['card', 'chat-message', ...extraClasses].join(' ')}>
-      <div className="card-header">
-        <div className="tile-title">{props.message.nickname}</div>
-        <div className="menu-button-container">{menu}</div>
+    <div className='chat-message'>
+      <div className="header">
+        <div className="left">
+          <span className="nickname">{props.message.nickname}</span>
+          <span className="text-tiny">{formatDate(props.message.createdAt)}</span>
+        </div>
+        {menu}
       </div>
+    <div className={['card', ...extraClasses].join(' ')}>
       <div className="card-body">
         <p>{props.message.message}</p>
       </div>
+    </div>
     </div>
   );
 }
@@ -204,7 +216,7 @@ export function ChatMessages() {
   const loadMoreButton =
     messages.messages.length > 0 ? (
       <LayoutRow key={'load-more'}>
-        <LayoutColumn extraClasses={['center']}>
+        <LayoutColumn extraClasses={['center', 'load-more']}>
           <span ref={firstElementRef}>
             <Button title="Load more" extraClasses={['load-more-button', 'btn-sm']} onClick={onLoadMore} />
           </span>

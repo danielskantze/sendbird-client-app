@@ -90,7 +90,7 @@ export function ChannelSettings() {
   const nicknameOptions = nicknamesToDropDownItems(nicknameSettings.nicknames);
   const selectedNicknameItem = dropdownItemWithValue(nicknameOptions, uiState.selectedNickname);
   return (
-    <div>
+    <div className="channel-settings-container">
       {editNicknameVisible ? <EditNicknamesModal onClose={onCloseEditNicknames} onSave={onSaveNicknames} /> : ''}
       <LayoutRow extraClasses={['channel-settings']}>
         <LayoutColumn size={6}>
