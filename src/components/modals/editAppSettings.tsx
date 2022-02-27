@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { ModalDialog } from "./modalDialog";
 import {
   AppSettings,
-  updateApiKey,
+  updateApplicationId,
   selector as appSettingsSelector,
 } from "../../store/slices/appSettings";
 import { useAppDispatch, useAppSelector } from "../../store/hooks";
@@ -18,19 +18,19 @@ const SAVE_ACTION_ID = 'save';
 export function EditAppSettingsModal(props: EditAppSettingsModalProps) {
   const dispatch = useAppDispatch();
   const appSettings: AppSettings = useAppSelector(appSettingsSelector);
-  const [apiKey, setApiKey] = useState(appSettings.apiKey);
+  const [applicationId, setApplicationId] = useState(appSettings.applicationId);
 
   const onAction = (id: string) => {
     switch (id) {
       case SAVE_ACTION_ID:
-        dispatch(updateApiKey(apiKey));
+        dispatch(updateApplicationId(applicationId));
         props.onSave();
         break;
     }
   };
 
   const onChange = (text:string) => {
-    setApiKey(text);
+    setApplicationId(text);
   };
 
   return (
@@ -41,7 +41,7 @@ export function EditAppSettingsModal(props: EditAppSettingsModalProps) {
       onAction={onAction}
       content={
         <form>
-          <TextField label="API Key" value={apiKey} onChange={onChange} />
+          <TextField label="Application ID" value={applicationId} onChange={onChange} />
         </form>
       }
       actions={[{ title: "Save", id: SAVE_ACTION_ID }]}

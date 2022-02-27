@@ -90,7 +90,7 @@ function App() {
   };
 
   const onAppstateChange: React.EffectCallback = () => {
-    sharedServices.chat = new ChatService(appState.apiKey);
+    sharedServices.chat = new ChatService(appState.applicationId);
   };
 
   const onAckError = (id: string) => {
