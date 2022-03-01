@@ -43,6 +43,10 @@ Verdict: I do not think I will use Redux again. If I need more advanced state ma
 - While Redux did the trick when I set it up I still felt it was too verbose and felt pretty overengineered. Especially the documentation left me with the feeling that the same principles could have been explained with fewer words and better examples. Almost like the one writing it would want it to appear more complicated than it is. 
 - Also all this immutatibility and copying (something that of course solves a lot of things) feels like a potential performance bottleneck. Especially when it comes to really big data structures. 
 
+## TODO
+
+- Provide feedback when channel list is updated
+- Automatically select the newly added alternative for drop down lists
 ## Known issues / room for improvement
 
 Sharing the stateful chat service and controlling it directly inside multiple components feels so so. It is a remnant of some old chatbot code based some of the code on. Not sure exactly how I would want to clean it up though. Probably the "correct" way would be to manage it from one of the store slices. Wrap it with actions and just render whatever state they produce. I imagine that the error handling may get messy using this approach though. The error that can be quite local and tied to the specific user interaction would still need to get lifted up and dispatched. Sometimes it is just easier to read the code if that type of error handling would be managed directly inside the component. For example, a user manages to connect but but for some reason the user cannot join the channel. Or the user fails to connect. Managing two different error states globally for this in addition to their corresponding error messages and so forth is of course possible but may turn out to be quite hard to follow. Also Redux both helps and makes things worse here. It helps because it has thunks and way of handling async code. But it is quite verbose so troubleshooting things will still involve jumping through a lot of hoops. 
