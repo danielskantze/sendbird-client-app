@@ -2,12 +2,15 @@ import React, { useState } from "react";
 import { LayoutColumn } from "./atoms/layoutColumn";
 import { LayoutRow } from "./atoms/layoutRow";
 import { EditAppSettingsModal } from "./modals/editAppSettings";
+import * as stateUi from '../store/slices/uiState';
+import { useAppDispatch } from "../store/hooks";
 
 type AppTitleProps = {
   title: string;
 };
 
 export function AppTitleBar(props: AppTitleProps) {
+  const dispatch = useAppDispatch();
   const [appSettingsVisible, setAppSettingsVisible] = useState(false);
   
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -22,6 +25,7 @@ export function AppTitleBar(props: AppTitleProps) {
   };
 
   const onModalSave = () => {
+    dispatch(stateUi.setDisconnected());
     setAppSettingsVisible(false);
   };
 

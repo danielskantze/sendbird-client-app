@@ -51,9 +51,15 @@ export function ChannelSettings() {
     setEditNicknameVisible(false);
   };
 
-  const onSaveNicknames = () => {
+  const onSaveNicknames = (selectedItem?:string) => {
+    console.log("onSaveNicknames");
     dispatch(stateUi.setDisconnected());
     setEditNicknameVisible(false);
+    if (selectedItem) {
+      dispatch(stateUi.setSelectedNickname(selectedItem));
+    } else {
+      dispatch(stateUi.setSelectedNickname(null));
+    }
   };
 
   const onRefreshChannel = async () => {
@@ -98,13 +104,17 @@ export function ChannelSettings() {
     dispatch(stateUi.setDisconnected());
   };
 
+  const canConnect = () => {
+    return (!!uiState.selectedNickname) && (!!uiState.selectedChannelUrl);
+  };
+
   const channelOptions = channelsToDropDownItems(channelSettings.channels);
   const selectedChannelItem = dropdownItemWithValue(channelOptions, uiState.selectedChannelUrl);
   const nicknameOptions = nicknamesToDropDownItems(nicknameSettings.nicknames);
   const selectedNicknameItem = dropdownItemWithValue(nicknameOptions, uiState.selectedNickname);
   return (
     <div className="channel-settings-container">
-      {editNicknameVisible ? <EditNicknamesModal onClose={onCloseEditNicknames} onSave={onSaveNicknames} /> : ''}
+      {editNicknameVisible ? <EditNicknamesModal onClose={onCloseEditNicknames} onSave={onSaveNicknames} selectedNickname={selectedNicknameItem ? selectedNicknameItem.value : null} /> : ''}
       <LayoutRow extraClasses={['channel-settings']}>
         <LayoutColumn size={6}>
           <label className="text-tiny">Channel</label>
@@ -134,8 +144,8 @@ export function ChannelSettings() {
         </LayoutColumn>
         <LayoutColumn size={2} align="right">
           <div className="float-right">
-            {uiState.connectionStatus === stateUi.ConnectionStatus.Disconnected ? (
-              <Button title="Connect" onClick={onConnect} />
+            { uiState.connectionStatus === stateUi.ConnectionStatus.Disconnected ? (
+              <Button title="Connect" onClick={onConnect} disabled={!canConnect()} />
             ) : (
               <Button title="Disconnect" onClick={onDisconnect} />
             )}

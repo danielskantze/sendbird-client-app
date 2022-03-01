@@ -10,8 +10,9 @@ import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { TextField } from '../atoms/textField';
 
 type EditNicknamesModalProps = {
+  selectedNickname?: string,
   onClose: () => void;
-  onSave: () => void;
+  onSave: (lastAdded:string) => void;
 };
 
 const SAVE_ACTION_ID = 'save';
@@ -65,6 +66,8 @@ function AddRow(props: AddRowProps) {
   );
 }
 
+let lastAdded:string = null;
+
 export function EditNicknamesModal(props: EditNicknamesModalProps) {
   const dispatch = useAppDispatch();
   const nicknameSettings: NicknameSettings = useAppSelector(nicknameSettingsSelector);
@@ -74,17 +77,29 @@ export function EditNicknamesModal(props: EditNicknamesModalProps) {
     switch (id) {
       case SAVE_ACTION_ID:
         dispatch(updateNicknames(nicknames));
-        props.onSave();
+        if (!lastAdded && !(nicknames.find(n => n === props.selectedNickname))) {
+          if (nicknames.length > 0) {
+            props.onSave(nicknames[nicknames.length - 1]);  
+          } else {
+            props.onSave(null);
+          }
+        } else {
+          props.onSave(lastAdded || props.selectedNickname);
+        }
         break;
     }
   };
 
   const onAddNickname = (nickname: string) => {
+    lastAdded = nickname;
     setNicknames(nicknames.concat([nickname]));
   };
 
   const createDeleteNicknameFn = (nickname: string) => {
     return () => {
+        if (nickname === lastAdded) {
+          lastAdded = null;
+        }
         setNicknames(nicknames.filter(n => n !== nickname));
     };
   };

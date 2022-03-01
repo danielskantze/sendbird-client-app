@@ -144,9 +144,9 @@ function App() {
             <ChatMessages />
           ) : (
             <NotConnectedPlaceholder
-              hasApplicationId={appState.applicationId.length > 0}
-              hasChannel={uiState.selectedChannelUrl.length > 0}
-              hasNickname={uiState.selectedNickname.length > 0}
+              hasApplicationId={appState.applicationId?.length > 0}
+              hasChannel={uiState.selectedChannelUrl?.length > 0}
+              hasNickname={uiState.selectedNickname?.length > 0}
             />
           )}
         </div>
