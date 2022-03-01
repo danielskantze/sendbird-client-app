@@ -1,8 +1,9 @@
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const electron = (window as any).electron;
 
-export async function loadConfig(key:string):Promise<object> {
-    return electron.loadConfig(key)
+export async function loadConfig(key:string, defaultConfig?:object):Promise<object> {
+    const defaultConfigOrNull = defaultConfig ? JSON.stringify(defaultConfig) : null;
+    return electron.loadConfig(key, defaultConfigOrNull)
         .then(JSON.parse);
 }
 

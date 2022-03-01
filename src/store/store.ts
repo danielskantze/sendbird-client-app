@@ -30,7 +30,7 @@ export async function initializeStore(configMutatorFn?:ConfigMutatorFn) {
         { slice: 'uistate', actionFn: uiState.initialize },
         { slice: 'messages', actionFn: messages.clearMessages },
     ];
-    let configs = await Promise.all(initItems.map(i => loadConfig(i.slice)));
+    let configs = await Promise.all(initItems.map(i => loadConfig(i.slice, {})));
     if (configMutatorFn) {
         configs = await Promise.all(configs.map((c, i) => configMutatorFn(initItems[i].slice, c)));
     }

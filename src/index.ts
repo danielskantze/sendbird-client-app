@@ -1,5 +1,5 @@
 import * as path from 'path';
-import * as fs from 'fs';
+import * as filesystem  from './ipcmain/util/filesystem';
 import { app, BrowserWindow, ipcMain, protocol } from 'electron';
 import * as crypto from 'crypto';
 
@@ -45,23 +45,9 @@ function getConfigPath(file?: string): string {
     return path.join(...pieces);
 }
 
-function createConfigFolder() {
+function createConfigFolder():Promise<void> {
     const configFolder = getConfigPath();
-    return new Promise((resolve, reject) => {
-        fs.exists(configFolder, exists => {
-            if (!exists) {
-                fs.mkdir(configFolder, mkdirErr => {
-                    if (mkdirErr) {
-                        reject(new Error('Uh, oh, config folder could not be created'));
-                    } else {
-                        resolve(null);
-                    }
-                });
-            } else {
-                resolve(null);
-            }
-        });
-    });
+    return filesystem.createFolderIfNotExists(configFolder);
 }
 
 function initialize() {
@@ -73,16 +59,19 @@ function initialize() {
 ipcMain.handle('app:load-config', (event, args) => {
     const key: string = args.key;
     const callId: string = args.callId;
+    const defaultConfig: string = args.defaultConfig;
     const basepath = app.getAppPath();
     const configFolder = path.join(basepath, '.config');
     const configFile = path.join(configFolder, key + '.json');
-    fs.readFile(configFile, 'utf8', (err, data) => {
-        if (err) {
-            event.sender.send('app:' + callId, false);
-        } else {
-            event.sender.send('app:' + callId, data);
-        }
-    });
+
+    filesystem.exists(configFile)
+        .then(exists => {
+            return exists ?
+                filesystem.readFile(configFile) :
+                filesystem.saveFile(configFile, defaultConfig).then(() => defaultConfig);
+        })
+        .then(data => { event.sender.send('app:' + callId, data); })
+        .catch(e => { event.sender.send('app:' + callId, false); });
 });
 
 ipcMain.handle('app:save-config', (event, args) => {
@@ -92,13 +81,9 @@ ipcMain.handle('app:save-config', (event, args) => {
     const basepath = app.getAppPath();
     const configFolder = path.join(basepath, '.config');
     const configFile = path.join(configFolder, key + '.json');
-    fs.writeFile(configFile, data, err => {
-        if (err) {
-            event.sender.send('app:' + callId, false);
-        } else {
-            event.sender.send('app:' + callId, true);
-        }
-    });
+    filesystem.saveFile(configFile, data)
+        .then(() => event.sender.send('app:' + callId, true))
+        .catch((e) => event.sender.send('app:' + callId, false));
 });
 
 ipcMain.handle('app:generate-id', (event, args) => {
