@@ -11,6 +11,7 @@ type DropDownProps = {
     buttonTitle: string | JSX.Element,
     selectTitle: string,
     selectedValue?: DropDownItem,
+    disabled?: boolean,
     options: Array<DropDownItem>,
     extraCssClasses?:Array<string>,
     onEdit?: () => void,
@@ -30,7 +31,7 @@ function truncateToNChars(str:string, maxLength?:number) {
 export function DropDown(props: DropDownProps) {
     const { buttonTitle } = props;
     const button = buttonTitle ? (
-        <Button title={buttonTitle} extraClasses={['input-group-btn']} onClick={props.onEdit} />
+        <Button title={buttonTitle} extraClasses={['input-group-btn']} onClick={props.onEdit} disabled={props.disabled} />
     ) : (
         ''
     );
@@ -47,7 +48,7 @@ export function DropDown(props: DropDownProps) {
     return (
         <div className={mainCssClasses.join(' ')}>
             <div className="input-group">
-                <select className="form-select" onChange={onChange} value={props.selectedValue ? props.selectedValue.value : ''}>
+                <select className="form-select" disabled={props.disabled} onChange={onChange} value={props.selectedValue ? props.selectedValue.value : ''}>
                     <option key={'--select--title--'}>{props.selectTitle}</option>
                     {props.options.map((o, i) => (
                         <option key={i} value={o.value}>

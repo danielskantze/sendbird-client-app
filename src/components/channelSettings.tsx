@@ -32,6 +32,8 @@ function dropdownItemWithValue(items: Array<DropDownItem>, value: string) {
 
 export function ChannelSettings() {
   const dispatch = useAppDispatch();
+  const [isRefreshingChannels, setIsRefreshingChannels] = useState(false);
+
   const sharedServices = useContext(SharedServicesContext) as SharedServices;
   const uiState: stateUi.UIState = useAppSelector(stateUi.selector);
   const [editNicknameVisible, setEditNicknameVisible] = useState(false);
@@ -56,6 +58,7 @@ export function ChannelSettings() {
   const onRefreshChannel = async () => {
     const { chat } = sharedServices;
     const chatUserId = createChatUserId(appState.installationId, uiState.selectedNickname);
+    setIsRefreshingChannels(true);
     let channels:Array<Channel> = [];
     if (!chat.isConnected) {
       await chat.connect(chatUserId, uiState.selectedNickname);
@@ -64,6 +67,7 @@ export function ChannelSettings() {
     } else {
       channels = await chat.loadChannels();
     }
+    setIsRefreshingChannels(false);
     dispatch(updateChannels(channels));
   };
 
@@ -99,6 +103,7 @@ export function ChannelSettings() {
             selectTitle="Select a channel"
             buttonTitle={(<RefreshIcon size={18} />)}
             options={channelOptions}
+            disabled={isRefreshingChannels}
             selectedValue={selectedChannelItem}
             extraCssClasses={['channel-selector']}
             maxLength={46}
