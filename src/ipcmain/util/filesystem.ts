@@ -25,7 +25,7 @@ export function saveFile(filePath:string, data:string) {
 }
 
 export function exists(filePath:string) {
-    return new Promise((resolve, reject) => {
+    return new Promise((resolve) => {
         fs.exists(filePath, (exists) => {
             resolve(exists);
         });

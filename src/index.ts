@@ -71,7 +71,7 @@ ipcMain.handle('app:load-config', (event, args) => {
                 filesystem.saveFile(configFile, defaultConfig).then(() => defaultConfig);
         })
         .then(data => { event.sender.send('app:' + callId, data); })
-        .catch(e => { event.sender.send('app:' + callId, false); });
+        .catch(() => { event.sender.send('app:' + callId, false); });
 });
 
 ipcMain.handle('app:save-config', (event, args) => {
@@ -83,7 +83,7 @@ ipcMain.handle('app:save-config', (event, args) => {
     const configFile = path.join(configFolder, key + '.json');
     filesystem.saveFile(configFile, data)
         .then(() => event.sender.send('app:' + callId, true))
-        .catch((e) => event.sender.send('app:' + callId, false));
+        .catch(() => event.sender.send('app:' + callId, false));
 });
 
 ipcMain.handle('app:generate-id', (event, args) => {
