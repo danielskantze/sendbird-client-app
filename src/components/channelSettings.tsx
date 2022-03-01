@@ -17,6 +17,7 @@ import { SharedServices, SharedServicesContext } from '../appcontext';
 import { Channel, createChatUserId } from '../services/chat';
 import { RefreshIcon } from './icons/refreshIcon';
 import { MoreIcon } from './icons/moreIcon';
+import * as flashMessages from '../store/flashMessages';
 
 function channelsToDropDownItems(channels: Array<ChannelDescriptor>): Array<DropDownItem> {
   return channels.map(c => ({ title: c.name, value: c.url } as DropDownItem));
@@ -60,15 +61,23 @@ export function ChannelSettings() {
     const chatUserId = createChatUserId(appState.installationId, uiState.selectedNickname);
     setIsRefreshingChannels(true);
     let channels:Array<Channel> = [];
-    if (!chat.isConnected) {
-      await chat.connect(chatUserId, uiState.selectedNickname);
-      channels = await chat.loadChannels();
-      await chat.disconnect();
-    } else {
-      channels = await chat.loadChannels();
+    try {
+      if (!chat.isConnected) {
+        await chat.connect(chatUserId, uiState.selectedNickname);
+        channels = await chat.loadChannels();
+        await chat.disconnect();
+      } else {
+        channels = await chat.loadChannels();
+      }
+      setIsRefreshingChannels(false);
+      if (!uiState.selectedChannelUrl && channels.length) {
+        dispatch(stateUi.setSelectedChannelUrl(channels[0].url));
+      }
+      dispatch(updateChannels(channels));
+    } catch (e) {
+      setIsRefreshingChannels(false);
+      dispatch(stateUi.addFlashMessage(flashMessages.fromError(e)));
     }
-    setIsRefreshingChannels(false);
-    dispatch(updateChannels(channels));
   };
 
   const onSelectChannel = (item: DropDownItem) => {
