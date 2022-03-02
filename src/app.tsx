@@ -68,11 +68,12 @@ function App() {
     const chatUserId = uiState.selectedUserId;
     const userData = stateUsers.getUserData(chatUserId, userState.users);
     try {
-      await chat.connect(chatUserId, userData.name);
+      await chat.connect(chatUserId, userData.name, userData.token);
       dispatch(stateUi.setConnected());
       await chat.joinChannel(uiState.selectedChannelUrl);
       dispatch(stateUi.setJoinedChannel());
     } catch (e) {
+      console.error(e);
       dispatch(
         stateUi.addFlashMessage(
           flashMessages.createError(

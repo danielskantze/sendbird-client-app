@@ -50,26 +50,35 @@ function ListingRow(props: ListingRowProps) {
 }
 
 type AddRowProps = {
-  placeholder: string;
-  onAddRow: (input: string) => void;
+  placeholders: Array<string>;
+  onAddRow: (values: Array<string>) => void;
 };
 
 function AddRow(props: AddRowProps) {
-  const [inputValue, setInputvalue] = useState('');
+  const [inputValues, setInputValues] = useState(props.placeholders.map(() => ''));
 
-  const onChangeInputValue = (text: string) => {
-    setInputvalue(text);
+  const onChangeInputValue = (text: string, fieldIndex:number) => {
+    const newValues = inputValues.concat();
+    newValues[fieldIndex] = text;
+    setInputValues(newValues);
+  };
+
+  const createOnChangeFn = (fieldIndex:number) => {
+    return (text: string) => {
+      onChangeInputValue(text, fieldIndex);
+    }
   };
 
   const onClickAdd = () => {
-    props.onAddRow(inputValue);
-    setInputvalue('');
+    props.onAddRow(inputValues);
+    console.log(onClickAdd);
+    setInputValues(props.placeholders.map(() => ''))
   };
 
   return (
-    <li key={'add'} className="add">
+    <li key={'add'} className={["add", "n-fields-" + props.placeholders.length].join(' ')}>
       <div className="value">
-        <TextField value={inputValue} onChange={onChangeInputValue} placeholder={props.placeholder} />
+        {props.placeholders.map((p, i) => (<TextField key={i} value={inputValues[i]} onChange={createOnChangeFn(i)} placeholder={p} />))}
       </div>
       <div className="action">
         <Button title="add" onClick={onClickAdd} />
@@ -103,21 +112,36 @@ export function EditUsersModal(props: EditUsersModalProps) {
     }
   };
 
-  const onAddUser = (nickname: string) => {
+  const onAddUser = (values:Array<string>) => {
+    const [ nickname ] = values;
     const userData:UserData = {userId: chat.generateUserId(nickname), name: nickname };
+    if (getUserData(userData.userId, users)) {
+      // user already exists - bail
+      // TODO: Show error message
+      return;
+    }
     lastAdded = userData.userId;
     setUsers(users.concat([userData]));
   };
 
-  const onAddExisting = async (userId: string) => {
+  const onAddExisting = async (values:Array<string>) => {
+    const [ userId, token ] = values;
+    console.log(userId, token);
     const userData:UserData = { userId: '', name: '' };
     const userInfo = await chat.getUserInfo(userId);
     if (!userInfo) {
-      
+      // user does not exist in Sendbird - bail
+      // TODO: Show error message
+      return;
+    }
+    if (getUserData(userInfo.userId, users)) {
+      // user already exists - bail
+      // TODO: Show error message
       return;
     }
     userData.name = userInfo.nickname;
     userData.userId = userInfo.userId;
+    userData.token = token;
     lastAdded = userData.userId;
     setUsers(users.concat([userData]));
   };
@@ -170,11 +194,11 @@ export function EditUsersModal(props: EditUsersModalProps) {
               </a>
             </li>
           </ul>
-          <ul className="tab table edit-list edit-channels-add">
+          <ul className="table edit-list edit-channels-add">
             {addType === AddType.New ? (
-              <AddRow onAddRow={onAddUser} placeholder="Nickname" />
+              <AddRow onAddRow={onAddUser} placeholders={["Nickname"]} />
             ) : (
-              <AddRow onAddRow={onAddExisting} placeholder="User ID" />
+              <AddRow onAddRow={onAddExisting} placeholders={["User ID", "Token"]} />
             )}
           </ul>
         </div>

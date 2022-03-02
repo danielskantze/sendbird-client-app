@@ -126,10 +126,12 @@ export class ChatService {
   canSend() {
     return this.isConnected && this._channel;
   }
-  async connect(userId: string, nickname: string) {
+  async connect(userId: string, nickname: string, token?:string) {
     this._userId = userId;
     this._nickname = nickname;
-    const user = await this._sendbird.connect(this.userId);
+    const user = token ? 
+      await this._sendbird.connect(this.userId, token) :
+      await this._sendbird.connect(this.userId);
     this._user = user;
     this._isConnected = true;
     Logger.main.debug('Connected', user);

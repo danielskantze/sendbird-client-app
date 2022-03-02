@@ -5,6 +5,7 @@ import { BaseState } from './basetypes';
 export type UserData = {
     userId: string
     name: string,
+    token?: string,
 }
 
 export interface UserRepository extends BaseState {

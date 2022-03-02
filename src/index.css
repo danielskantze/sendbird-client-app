@@ -258,6 +258,20 @@ ul.edit-channels-add {
   justify-content: end;
 }
 
+.edit-list li.add .form-group:not(:last-child) {
+  margin-bottom: 0;
+  margin-right: 0.4rem;
+}
+
+li.add.n-fields-2 .value {
+  display: flex;
+  flex-direction: row;
+}
+
+li.add.n-fields-2 .value > * {
+  flex: 1 0;
+}
+
 .edit-list li .value {
   padding-left: 0.25em;
 }
