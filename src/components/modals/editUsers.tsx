@@ -2,17 +2,21 @@ import React, { useContext, useState } from 'react';
 import { Button } from '../atoms/button';
 import { ModalDialog } from './modalDialog';
 import {
-  NicknameSettings,
-  setNicknames as updateNicknames,
-  selector as nicknameSettingsSelector,
-} from '../../store/slices/nicknameSettings';
+  UserRepository,
+  setUsers as updateUsers,
+  selector as usersSettingsSeleector,
+  UserData,
+  getUserData,
+} from '../../store/slices/userSettings';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { TextField } from '../atoms/textField';
 import { cssCl } from '../../util/styling';
 import { SharedServices, SharedServicesContext } from '../../appcontext';
 
-type EditNicknamesModalProps = {
-  selectedNickname?: string;
+let lastAdded: string = null;
+
+type EditUsersModalProps = {
+  selectedUserId?: string;
   onClose: () => void;
   onSave: (lastAdded: string) => void;
 };
@@ -25,18 +29,18 @@ enum AddType {
 }
 
 type ListingRowProps = {
-  nickname: string;
-  onDeleteItem: (nickname: string) => void;
+  user: UserData;
+  onDeleteItem: (user: UserData) => void;
 };
 
 function ListingRow(props: ListingRowProps) {
   const onClick = () => {
-    return props.onDeleteItem(props.nickname);
+    return props.onDeleteItem(props.user);
   };
   return (
     <li>
-      <div className="nickname value" title={props.nickname}>
-        {props.nickname}
+      <div className="nickname value" title={props.user.name}>
+        {props.user.name}
       </div>
       <div className="action">
         <Button title="delete" type="error" extraClasses={['btn-sm']} onClick={onClick} />
@@ -74,12 +78,10 @@ function AddRow(props: AddRowProps) {
   );
 }
 
-let lastAdded: string = null;
-
-export function EditNicknamesModal(props: EditNicknamesModalProps) {
+export function EditUsersModal(props: EditUsersModalProps) {
   const dispatch = useAppDispatch();
-  const nicknameSettings: NicknameSettings = useAppSelector(nicknameSettingsSelector);
-  const [nicknames, setNicknames] = useState(nicknameSettings.nicknames);
+  const usersSettings: UserRepository = useAppSelector(usersSettingsSeleector);
+  const [users, setUsers] = useState(usersSettings.users);
   const [addType, setAddType] = useState(AddType.New);
   const sharedServices = useContext(SharedServicesContext) as SharedServices;
   const { chat } = sharedServices;
@@ -87,37 +89,45 @@ export function EditNicknamesModal(props: EditNicknamesModalProps) {
   const onAction = (id: string) => {
     switch (id) {
       case SAVE_ACTION_ID:
-        dispatch(updateNicknames(nicknames));
-        if (!lastAdded && !nicknames.find(n => n === props.selectedNickname)) {
-          if (nicknames.length > 0) {
-            props.onSave(nicknames[nicknames.length - 1]);
+        dispatch(updateUsers(users));
+        if (!lastAdded && !getUserData(props.selectedUserId, users)) {
+          if (users.length > 0) {
+            props.onSave(users[users.length - 1].userId);
           } else {
             props.onSave(null);
           }
         } else {
-          props.onSave(lastAdded || props.selectedNickname);
+          props.onSave(lastAdded || props.selectedUserId);
         }
         break;
     }
   };
 
-  const onAddNickname = (nickname: string) => {
-    lastAdded = nickname;
-    setNicknames(nicknames.concat([nickname]));
+  const onAddUser = (nickname: string) => {
+    const userData:UserData = {userId: chat.generateUserId(nickname), name: nickname };
+    lastAdded = userData.userId;
+    setUsers(users.concat([userData]));
   };
 
   const onAddExisting = async (userId: string) => {
+    const userData:UserData = { userId: '', name: '' };
     const userInfo = await chat.getUserInfo(userId);
-    lastAdded = userInfo.nickname;
-    setNicknames(nicknames.concat([userInfo.nickname]));
+    if (!userInfo) {
+      
+      return;
+    }
+    userData.name = userInfo.nickname;
+    userData.userId = userInfo.userId;
+    lastAdded = userData.userId;
+    setUsers(users.concat([userData]));
   };
 
-  const createDeleteNicknameFn = (nickname: string) => {
+  const createDeleteUserFn = (user: UserData) => {
     return () => {
-      if (nickname === lastAdded) {
+      if (user.userId === lastAdded) {
         lastAdded = null;
       }
-      setNicknames(nicknames.filter(n => n !== nickname));
+      setUsers(users.filter(n => n !== user));
     };
   };
 
@@ -133,15 +143,15 @@ export function EditNicknamesModal(props: EditNicknamesModalProps) {
 
   return (
     <ModalDialog
-      title="Edit nicknames"
+      title="Edit users"
       isLarge={false}
       onClose={props.onClose}
       onAction={onAction}
       content={
         <div>
           <ul className="table edit-list edit-channels-items">
-            {nicknames.map(c => (
-              <ListingRow key={c} nickname={c} onDeleteItem={createDeleteNicknameFn(c)} />
+            {users.map(c => (
+              <ListingRow key={c.userId} user={c} onDeleteItem={createDeleteUserFn(c)} />
             ))}
           </ul>
         </div>
@@ -162,7 +172,7 @@ export function EditNicknamesModal(props: EditNicknamesModalProps) {
           </ul>
           <ul className="tab table edit-list edit-channels-add">
             {addType === AddType.New ? (
-              <AddRow onAddRow={onAddNickname} placeholder="Nickname" />
+              <AddRow onAddRow={onAddUser} placeholder="Nickname" />
             ) : (
               <AddRow onAddRow={onAddExisting} placeholder="User ID" />
             )}

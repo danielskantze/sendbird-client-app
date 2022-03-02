@@ -5,7 +5,7 @@ import { BaseState } from './basetypes';
 
 export interface UIState extends BaseState {
   selectedChannelUrl: string;
-  selectedNickname: string;
+  selectedUserId: string;
   connectionStatus: ConnectionStatus;
   errors: Array<FlashMessage>;
 }
@@ -18,12 +18,12 @@ export enum ConnectionStatus {
 
 const initialState: UIState = {
   selectedChannelUrl: '',
-  selectedNickname: '',
+  selectedUserId: '',
   connectionStatus: ConnectionStatus.Disconnected,
   errors: [],
 };
 
-const PERSISTED_PROPERTIES = new Set<string>(['selectedChannelUrl', 'selectedNickname']);
+const PERSISTED_PROPERTIES = new Set<string>(['selectedChannelUrl', 'selectedUserId']);
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type KVUntyped = Record<string, any>;
@@ -46,9 +46,9 @@ const slice = createSlice({
       state.selectedChannelUrl = action.payload;
       saveConfig('uistate', persistedState(state));
     },
-    setSelectedNickname: (state, action: PayloadAction<string>) => {
-      console.log('setSelectedNickname', action.payload);
-      state.selectedNickname = action.payload;
+    setSelectedUserId: (state, action: PayloadAction<string>) => {
+      console.log('setSelectedUserId', action.payload);
+      state.selectedUserId = action.payload;
       saveConfig('uistate', persistedState(state));
     },
     setConnected: state => {
@@ -89,7 +89,7 @@ const slice = createSlice({
 
 export const {
   setSelectedChannelUrl,
-  setSelectedNickname,
+  setSelectedUserId,
   setConnected,
   setDisconnected,
   setJoinedChannel,

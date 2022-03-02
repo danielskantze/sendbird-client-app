@@ -153,6 +153,9 @@ export class ChatService {
     await channel.enter();
     this._channel = channel;
   }
+  generateUserId(nickname:string):string {
+    return createChatUserId(this._serviceUserId, nickname);
+  }
   createPreviousListQuery(): PreviousListQuery {
     const listQuery = this._channel.createPreviousMessageListQuery();
     listQuery.limit = 10;

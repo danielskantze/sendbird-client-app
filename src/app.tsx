@@ -13,14 +13,15 @@ import { useAppDispatch, useAppSelector } from './store/hooks';
 import * as stateUi from './store/slices/uiState';
 import { ConnectionStatus } from './store/slices/uiState';
 import * as stateApp from './store/slices/appSettings';
-import { ChatService, createChatUserId } from './services/chat';
+import * as stateUsers from './store/slices/userSettings';
+import { ChatService } from './services/chat';
 import * as flashMessages from './store/flashMessages';
 import { FlashMessage } from './components/atoms/flashMessage';
 
 type NotConnectedPlaceholderProps = {
   hasApplicationId: boolean;
   hasChannel: boolean;
-  hasNickname: boolean;
+  hasUser: boolean;
 };
 
 function NotConnectedPlaceholder(props: NotConnectedPlaceholderProps) {
@@ -29,8 +30,8 @@ function NotConnectedPlaceholder(props: NotConnectedPlaceholderProps) {
     instructions = 'Missing Sendbird application ID. Press App settings to set one up.';
   } else if (!props.hasChannel) {
     instructions = 'Missing channel. Please refresh your channels and pick one. ';
-  } else if (!props.hasNickname) {
-    instructions = 'Missing nickname. Please add a nickname and select one. ';
+  } else if (!props.hasUser) {
+    instructions = 'Missing user. Please add a user and select one. ';
   } else {
     instructions = 'Hit Connect to start.';
   }
@@ -60,12 +61,14 @@ function App() {
   const dispatch = useAppDispatch();
   const appState: stateApp.AppSettings = useAppSelector(stateApp.selector);
   const uiState: stateUi.UIState = useAppSelector(stateUi.selector);
+  const userState: stateUsers.UserRepository = useAppSelector(stateUsers.selector);
 
   const chatConnect = async () => {
     const { chat } = sharedServices;
-    const chatUserId = createChatUserId(appState.installationId, uiState.selectedNickname);
+    const chatUserId = uiState.selectedUserId;
+    const userData = stateUsers.getUserData(chatUserId, userState.users);
     try {
-      await chat.connect(chatUserId, uiState.selectedNickname);
+      await chat.connect(chatUserId, userData.name);
       dispatch(stateUi.setConnected());
       await chat.joinChannel(uiState.selectedChannelUrl);
       dispatch(stateUi.setJoinedChannel());
@@ -146,7 +149,7 @@ function App() {
             <NotConnectedPlaceholder
               hasApplicationId={appState.applicationId?.length > 0}
               hasChannel={uiState.selectedChannelUrl?.length > 0}
-              hasNickname={uiState.selectedNickname?.length > 0}
+              hasUser={uiState.selectedUserId?.length > 0}
             />
           )}
         </div>

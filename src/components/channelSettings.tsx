@@ -3,18 +3,17 @@ import { Button } from './atoms/button';
 import { DropDown, DropDownItem } from './atoms/dropDown';
 import { LayoutColumn } from './atoms/layoutColumn';
 import { LayoutRow } from './atoms/layoutRow';
-import { EditNicknamesModal } from './modals/editNicknames';
+import { EditUsersModal } from './modals/editUsers';
 import {
   ChannelDescriptor,
   setChannels as updateChannels,
   selector as channelSettingsSelector,
 } from '../store/slices/channelSettings';
-import { selector as nicknamesSettingsSelector } from '../store/slices/nicknameSettings';
+import { getUserData, UserData, selector as usersSettingsSelector } from '../store/slices/userSettings';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import * as stateUi from '../store/slices/uiState';
-import * as stateApp from '../store/slices/appSettings';
 import { SharedServices, SharedServicesContext } from '../appcontext';
-import { Channel, createChatUserId } from '../services/chat';
+import { Channel } from '../services/chat';
 import { RefreshIcon } from './icons/refreshIcon';
 import { MoreIcon } from './icons/moreIcon';
 import * as flashMessages from '../store/flashMessages';
@@ -23,8 +22,8 @@ function channelsToDropDownItems(channels: Array<ChannelDescriptor>): Array<Drop
   return channels.map(c => ({ title: c.name, value: c.url } as DropDownItem));
 }
 
-function nicknamesToDropDownItems(nicknames: Array<string>): Array<DropDownItem> {
-  return nicknames.map(c => ({ title: c, value: c } as DropDownItem));
+function usersToDropDownItems(users: Array<UserData>): Array<DropDownItem> {
+  return users.map(c => ({ title: c.name, value: c.userId } as DropDownItem));
 }
 
 function dropdownItemWithValue(items: Array<DropDownItem>, value: string) {
@@ -37,39 +36,37 @@ export function ChannelSettings() {
 
   const sharedServices = useContext(SharedServicesContext) as SharedServices;
   const uiState: stateUi.UIState = useAppSelector(stateUi.selector);
-  const [editNicknameVisible, setEditNicknameVisible] = useState(false);
-  const appState: stateApp.AppSettings = useAppSelector(stateApp.selector);
+  const [editUserVisible, setEditUserVisible] = useState(false);
 
-  const nicknameSettings = useAppSelector(nicknamesSettingsSelector);
+  const usersSettings = useAppSelector(usersSettingsSelector);
   const channelSettings = useAppSelector(channelSettingsSelector);
 
-  const onEditNicknames = () => {
-    setEditNicknameVisible(true);
+  const onEditUsers = () => {
+    setEditUserVisible(true);
   };
 
-  const onCloseEditNicknames = () => {
-    setEditNicknameVisible(false);
+  const onCloseEditUsers = () => {
+    setEditUserVisible(false);
   };
 
-  const onSaveNicknames = (selectedItem?:string) => {
-    console.log("onSaveNicknames");
+  const onSaveUsers = (selectedUserId?:string) => {
     dispatch(stateUi.setDisconnected());
-    setEditNicknameVisible(false);
-    if (selectedItem) {
-      dispatch(stateUi.setSelectedNickname(selectedItem));
+    setEditUserVisible(false);
+    if (selectedUserId) {
+      dispatch(stateUi.setSelectedUserId(selectedUserId));
     } else {
-      dispatch(stateUi.setSelectedNickname(null));
+      dispatch(stateUi.setSelectedUserId(null));
     }
   };
 
   const onRefreshChannel = async () => {
     const { chat } = sharedServices;
-    const chatUserId = createChatUserId(appState.installationId, uiState.selectedNickname);
+    const userData = getUserData(chat.generateUserId(uiState.selectedUserId), usersSettings.users);
     setIsRefreshingChannels(true);
     let channels:Array<Channel> = [];
     try {
       if (!chat.isConnected) {
-        await chat.connect(chatUserId, uiState.selectedNickname);
+        await chat.connect(userData.userId, userData.name);
         channels = await chat.loadChannels();
         await chat.disconnect();
       } else {
@@ -91,8 +88,8 @@ export function ChannelSettings() {
     dispatch(stateUi.setDisconnected());
   };
 
-  const onSelectNickname = (item: DropDownItem) => {
-    dispatch(stateUi.setSelectedNickname(item.value));
+  const onSelectUser = (item: DropDownItem) => {
+    dispatch(stateUi.setSelectedUserId(item.value));
     dispatch(stateUi.setDisconnected());
   };
 
@@ -105,16 +102,15 @@ export function ChannelSettings() {
   };
 
   const canConnect = () => {
-    return (!!uiState.selectedNickname) && (!!uiState.selectedChannelUrl);
+    return (!!uiState.selectedUserId) && (!!uiState.selectedChannelUrl);
   };
-
   const channelOptions = channelsToDropDownItems(channelSettings.channels);
   const selectedChannelItem = dropdownItemWithValue(channelOptions, uiState.selectedChannelUrl);
-  const nicknameOptions = nicknamesToDropDownItems(nicknameSettings.nicknames);
-  const selectedNicknameItem = dropdownItemWithValue(nicknameOptions, uiState.selectedNickname);
+  const usersOptions = usersToDropDownItems(usersSettings.users);
+  const selectedUser = dropdownItemWithValue(usersOptions, uiState.selectedUserId);
   return (
     <div className="channel-settings-container">
-      {editNicknameVisible ? <EditNicknamesModal onClose={onCloseEditNicknames} onSave={onSaveNicknames} selectedNickname={selectedNicknameItem ? selectedNicknameItem.value : null} /> : ''}
+      {editUserVisible ? <EditUsersModal onClose={onCloseEditUsers} onSave={onSaveUsers} selectedUserId={selectedUser?.value} /> : ''}
       <LayoutRow extraClasses={['channel-settings']}>
         <LayoutColumn size={6}>
           <label className="text-tiny">Channel</label>
@@ -131,15 +127,15 @@ export function ChannelSettings() {
           />
         </LayoutColumn>
         <LayoutColumn size={4}>
-          <label className="text-tiny">Nickname</label>
+          <label className="text-tiny">User</label>
           <DropDown
-            selectTitle="Select a nickname"
+            selectTitle="Select a user"
             buttonTitle={(<MoreIcon />)}
-            options={nicknameOptions}
+            options={usersOptions}
             maxLength={24}
-            selectedValue={selectedNicknameItem}
-            onEdit={onEditNicknames}
-            onSelect={onSelectNickname}
+            selectedValue={selectedUser}
+            onEdit={onEditUsers}
+            onSelect={onSelectUser}
           />
         </LayoutColumn>
         <LayoutColumn size={2} align="right">
