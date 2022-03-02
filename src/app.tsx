@@ -53,7 +53,7 @@ function firstTimeStoreInitFn(slice: string, config: object) {
 }
 
 const sharedServices: SharedServices = {
-  chat: new ChatService(null),
+  chat: new ChatService(null, null),
 };
 
 function App() {
@@ -111,7 +111,7 @@ function App() {
   };
 
   const onAppstateChange: React.EffectCallback = () => {
-    sharedServices.chat = new ChatService(appState.applicationId);
+    sharedServices.chat = new ChatService(appState.applicationId, appState.installationId);
   };
 
   const onAckError = (id: string) => {

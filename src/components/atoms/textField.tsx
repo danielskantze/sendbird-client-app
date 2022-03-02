@@ -14,7 +14,7 @@ export function TextField(props: TextFieldProps) {
   };
 
   const label = props.label ? 
-    (<label className="form-label">{props.label}</label>) : ('');
+    (<label className="form-label text-dark">{props.label}</label>) : ('');
   return (
     <div className="form-group">
       {label}

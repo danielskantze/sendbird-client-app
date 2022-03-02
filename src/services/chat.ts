@@ -264,16 +264,25 @@ export class ChatService {
     this._user = null;
     this._channel = null;
   }
+  // Note: Need to be connected to fetch users. If user is not connected, then use the special installationId to connect temporarily
   async getUserInfo(userId:string) {
     if (!this._serviceUserId) {
       throw new Error("serviceUserId not set");
     }
-    const sb = createSendbirdInstance() as SendBird.SendBirdInstance;
-    const query = this._sendbird.createApplicationUserListQuery();
+    let sb:SendBird.SendBirdInstance = this._sendbird;
+    let shouldDisconnect = false;
+    const config = { appId: this.chatAppId, localCacheEnabled: false };
+    if (!this._isConnected) {
+      sb = createSendbirdInstance(config) as SendBird.SendBirdInstance;
+      shouldDisconnect = true;
+    }
+    const query = sb.createApplicationUserListQuery();
     query.userIdsFilter = [userId];
     await sb.connect(this._serviceUserId);
     const users = await query.next();
-    await sb.disconnect();
+    if (shouldDisconnect) {
+      await sb.disconnect();
+    }
     return users.length > 0 ? users[0] : null;
   }
 }
