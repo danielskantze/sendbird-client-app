@@ -81,6 +81,7 @@ export class ChatService {
   private _chatUrl: string;
   private _nickname: string;
   private _userId: string;
+  private _serviceUserId: string;
   private _isConnected: boolean;
 
   private _channelHandler: SendBird.ChannelHandler;
@@ -89,9 +90,10 @@ export class ChatService {
   private _channel: SendBird.OpenChannel;
   private _sendbird: SendBird.SendBirdInstance;
 
-  constructor(chatAppId: string) {
+  constructor(chatAppId: string, serviceUserId: string) {
     const config = { appId: chatAppId, localCacheEnabled: false };
     this._chatAppId = chatAppId;
+    this._serviceUserId = serviceUserId;
     this._sendbird = createSendbirdInstance(config) as SendBird.SendBirdInstance;
   }
   get userId() {
@@ -124,70 +126,32 @@ export class ChatService {
   canSend() {
     return this.isConnected && this._channel;
   }
-  connect(userId: string, nickname: string) {
+  async connect(userId: string, nickname: string) {
     this._userId = userId;
     this._nickname = nickname;
-    return new Promise<void>((resolve, reject) => {
-      this._sendbird.connect(this.userId, (user, error) => {
-        if (error) {
-          reject(error);
-        } else {
-          this._user = user;
-          this._isConnected = true;
-          Logger.main.debug('Connected', user);
-
-          this._sendbird.updateCurrentUserInfo(nickname, '', function (response, error) {
-            if (error) {
-              reject(error);
-              return;
-            }
-            Logger.main.debug('Profile updated');
-            resolve();
-          });
-        }
-      });
-    });
+    const user = await this._sendbird.connect(this.userId);
+    this._user = user;
+    this._isConnected = true;
+    Logger.main.debug('Connected', user);
+    await this._sendbird.updateCurrentUserInfo(nickname, '');
+    Logger.main.debug('Profile updated');
   }
-  loadChannels() {
+  async loadChannels() {
     if (!this.isConnected) {
-      return Promise.reject(new Error("Not connected"));
+      throw new Error("Not connected");
     }
-    return new Promise<Array<Channel>>((resolve, reject) => {
-      const listQuery = this._sendbird.OpenChannel.createOpenChannelListQuery();
-      listQuery.next((sbChannels, error) => {
-        if (error) {
-          reject(error);
-        } else {
-          resolve(sbChannels.map(c => ({
-            url: c.url,
-            name: c.name
-          })));
-        }
-      });
-    });
+    const listQuery = this._sendbird.OpenChannel.createOpenChannelListQuery();
+    const sbChannels = await listQuery.next();
+    return sbChannels.map(c => ({ url: c.url, name: c.name }));
   }
-  joinChannel(url: string) {
+  async joinChannel(url: string) {
+    if (!this._sendbird || !this.isConnected) {
+      throw new Error('Not connected');
+    }
     this._chatUrl = url;
-    return new Promise<void>((resolve, reject) => {
-      if (!this._sendbird || !this.isConnected) {
-        reject(new Error('Not connected'));
-        return;
-      }
-      this._sendbird.OpenChannel.getChannel(url, (channel, error) => {
-        if (error) {
-          reject(error);
-          return;
-        }
-        channel.enter((response, error) => {
-          if (error) {
-            reject(error);
-            return;
-          }
-          this._channel = channel;
-          resolve();
-        });
-      });
-    });
+    const channel = await this._sendbird.OpenChannel.getChannel(url);
+    await channel.enter();
+    this._channel = channel;
   }
   createPreviousListQuery(): PreviousListQuery {
     const listQuery = this._channel.createPreviousMessageListQuery();
@@ -196,31 +160,20 @@ export class ChatService {
     return listQuery;
   }
   async loadPreviousMessages(listQuery: PreviousListQuery): Promise<Array<Message>> {
-    return new Promise((resolve, reject) => {
-      console.log('Loading');
-      listQuery.load(function (messageList, error) {
-        if (error) {
-          reject(error);
-        } else {
-          resolve(messageList.map(m => sbMessageToGeneralMessage(m)));
-        }
-      });
-    });
+    console.log('Loading');
+    const messageList = await listQuery.load();
+    return messageList.map(m => sbMessageToGeneralMessage(m));
   }
   async listOperators(): Promise<Array<string>> {
     const query = this._channel.createOperatorListQuery();
     query.limit = 30;
-    return new Promise((resolve, reject) => {
-      query.next((userList: Array<SendBird.User>, error) => {
-        if (error) {
-          reject(error);
-        } else {
-          resolve(userList.map(u => u.userId));
-        }
-      });
-    });
+    const userList = await query.next();
+    return userList.map(u => u.userId);
   }
-  sendMessage(message: string) {
+  async sendMessage(message: string) {
+    if (!this.isConnected || !this._channel) {
+      throw new Error('Not connected');
+    }
     return new Promise<Message>((resolve, reject) => {
       if (!this.isConnected || !this._channel) {
         reject(new Error('Not connected'));
@@ -252,24 +205,16 @@ export class ChatService {
       });
     });
   }
-  _deleteMessage(message: any) {
+  async _deleteMessage(message: any) {
     const generalMessage = sbMessageToGeneralMessage(message);
-    return new Promise<Message>((resolve, reject) => {
-      this._channel.deleteMessage(message as any, (response, error) => {
-        if (error) {
-          reject(error);
-        } else {
-          resolve(generalMessage);
-        }
-      });
-    });
+    await this._channel.deleteMessage(message as any);
+    return generalMessage;  
   }
-  deleteMessageWithId(messageId: number): Promise<Message> {
+  async deleteMessageWithId(messageId: number): Promise<Message> {
     if (!this.isConnected || !this._channel) {
-      Promise.reject(new Error('Not connected'));
-      return;
+      throw new Error('Not connected');
     }
-    return this.getMessage(messageId).then(m => this._deleteMessage(m));
+    return await this.getMessage(messageId).then(m => this._deleteMessage(m));
   }
   hasMessageHandler(): boolean {
     return !!this._channelHandlerId;
@@ -309,18 +254,26 @@ export class ChatService {
     this._channelHandler = null;
     this._channelHandlerId = null;
   }
-  disconnect() {
+  async disconnect() {
     if (!this.isConnected) {
       return Promise.resolve();
     }
     this.clearMessageHandler();
-    return new Promise<void>((resolve, reject) => {
-      this._sendbird.disconnect(() => {
-        this._isConnected = false;
-        this._user = null;
-        this._channel = null;
-        resolve();
-      });
-    });
+    await this._sendbird.disconnect();
+    this._isConnected = false;
+    this._user = null;
+    this._channel = null;
+  }
+  async getUserInfo(userId:string) {
+    if (!this._serviceUserId) {
+      throw new Error("serviceUserId not set");
+    }
+    const sb = createSendbirdInstance() as SendBird.SendBirdInstance;
+    const query = this._sendbird.createApplicationUserListQuery();
+    query.userIdsFilter = [userId];
+    await sb.connect(this._serviceUserId);
+    const users = await query.next();
+    await sb.disconnect();
+    return users.length > 0 ? users[0] : null;
   }
 }
