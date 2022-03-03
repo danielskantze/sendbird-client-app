@@ -4,7 +4,7 @@ type RefreshIconProps = {
   size?: number
 };
 
-export function RefreshIcon(props:RefreshIconProps) {
+export default function RefreshIcon(props:RefreshIconProps) {
   const d = props.size ? props.size : 30;
   const refD = 24 * 24 / d;
   return (

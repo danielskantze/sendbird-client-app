@@ -1,71 +1,20 @@
 import React, { useContext, useEffect, useRef, useState } from 'react';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import { SharedServices, SharedServicesContext } from '../appcontext';
-import LayoutColumn from './atoms/LayoutColumn';
-import LayoutRow from './atoms/LayoutRow';
 import * as stateUi from '../store/slices/uiState';
 import * as stateMessages from '../store/slices/messages';
 import { Message, PreviousListQuery, MessageEventType } from '../services/chat';
 import { ConnectionStatus } from '../store/slices/uiState';
-import Button from './atoms/Button';
 import * as flashMessages from '../store/flashMessages';
-import MoreIcon from './icons/MoreIcon';
-import { cssCl } from '../util/styling';
+
+import LayoutColumn from './atoms/LayoutColumn';
+import LayoutRow from './atoms/LayoutRow';
+import Button from './atoms/Button';
+import ContextMenu, { ContextMenuItem } from './atoms/ContextMenu';
 
 enum Action {
   None,
   LoadMore,
-}
-
-type MessageMenuItem = {
-  id: string;
-  title: string;
-  danger?: boolean;
-};
-
-type MessageMenuItemsProps = {
-  isVisible: boolean,
-  items: Array<MessageMenuItem>;
-  onItem: (item: MessageMenuItem) => void;
-  onTrigger: () => void;
-};
-
-function MessagePopover(props: MessageMenuItemsProps) {
-  function createClickFn(item: MessageMenuItem) {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    return (e: any) => {
-      e.preventDefault();
-      e.stopPropagation();
-      props.onItem(item);
-    };
-  }
-  function onTrigger(e:React.MouseEvent<HTMLAnchorElement, MouseEvent>) {
-    console.log("onTrigger");
-    e.preventDefault();
-    e.stopPropagation();
-    props.onTrigger();
-  }
-
-  console.log("PROPS.isVisible", props.isVisible);
-
-  return (
-    <div className={cssCl("message-menu", [props.isVisible, "visible"])}>
-      <div className="menu-button text text-primary">
-        <a href="#" onClick={onTrigger}>
-          <MoreIcon />
-        </a>
-      </div>
-        <div className="card">
-          <ul className="card-body menu">
-            {props.items.map(i => (
-              <li key={i.id} className={cssCl("item menu-item text-dark", [!!i.danger, "text-error"])}>
-                <a href="#" onClick={createClickFn(i)}>{i.title}</a>
-              </li>
-            ))}
-          </ul>
-      </div>
-    </div>
-  );
 }
 
 type EditChatMessageProps = {
@@ -144,7 +93,7 @@ function ChatMessage(props: MessageProps) {
   console.log("MESSAGE", props.message.id, props.showMenu);
 
   if (hasMenu) {
-    const onMenuItemClick = (menuItem: MessageMenuItem) => {
+    const onMenuItemClick = (menuItem: ContextMenuItem) => {
       console.log('Clicked item', menuItem.id);
       switch (menuItem.id) {
         case 'delete':
@@ -166,7 +115,7 @@ function ChatMessage(props: MessageProps) {
     if (props.onDeleteItem) {
       menuItems.push({ id: 'delete', title: 'Delete', danger: true });
     }
-    menu = <MessagePopover items={menuItems} onItem={onMenuItemClick} onTrigger={onClickMenuTrigger} isVisible={props.showMenu} />;
+    menu = <ContextMenu items={menuItems} onItem={onMenuItemClick} onTrigger={onClickMenuTrigger} isVisible={props.showMenu} />;
   }
 
   if (props.isOwner) {

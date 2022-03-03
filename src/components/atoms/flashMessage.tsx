@@ -7,7 +7,7 @@ type MessageProps = {
   onClear: (id:string) => void,
 };
 
-export function FlashMessage(props: MessageProps) {
+export default function FlashMessage(props: MessageProps) {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const onClick = (e:any) => {
     e.stopPropagation();

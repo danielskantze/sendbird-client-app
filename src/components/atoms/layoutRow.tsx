@@ -5,7 +5,7 @@ type LayoutRowProps = {
   extraClasses?: Array<string>;
 };
 
-export function LayoutRow(props: LayoutRowProps) {
+export default function LayoutRow(props: LayoutRowProps) {
   const classes = ["columns"];
   if (props.extraClasses) {
     props.extraClasses.forEach((c) => classes.push(c));

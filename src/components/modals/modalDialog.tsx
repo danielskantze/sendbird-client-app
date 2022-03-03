@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { Button } from '../atoms/button';
+import Button from '../atoms/Button';
 
 export type ModalDialogButtonAction = {
     title: string;
@@ -17,7 +17,7 @@ export interface ModalDialogProps {
     onAction?: (actionId: string) => void;
 }
 
-export function ModalDialog(props: ModalDialogProps) {
+export default function ModalDialog(props: ModalDialogProps) {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const onClickClose = (e: any) => {
         e.preventDefault();

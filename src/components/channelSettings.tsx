@@ -1,9 +1,9 @@
 import React, { useContext, useState } from 'react';
-import { Button } from './atoms/button';
-import { DropDown, DropDownItem } from './atoms/dropDown';
-import { LayoutColumn } from './atoms/layoutColumn';
-import { LayoutRow } from './atoms/layoutRow';
-import { EditUsersModal } from './modals/editUsers';
+import Button from './atoms/Button';
+import DropDown, { DropDownItem } from './atoms/DropDown';
+import LayoutColumn from './atoms/LayoutColumn';
+import LayoutRow from './atoms/LayoutRow';
+import EditUsersModal from './modals/EditUsers';
 import {
   ChannelDescriptor,
   setChannels as updateChannels,
@@ -14,8 +14,8 @@ import { useAppDispatch, useAppSelector } from '../store/hooks';
 import * as stateUi from '../store/slices/uiState';
 import { SharedServices, SharedServicesContext } from '../appcontext';
 import { Channel } from '../services/chat';
-import { RefreshIcon } from './icons/refreshIcon';
-import { MoreIcon } from './icons/moreIcon';
+import RefreshIcon from './icons/RefreshIcon';
+import MoreIcon from './icons/MoreIcon';
 import * as flashMessages from '../store/flashMessages';
 
 function channelsToDropDownItems(channels: Array<ChannelDescriptor>): Array<DropDownItem> {
@@ -30,7 +30,7 @@ function dropdownItemWithValue(items: Array<DropDownItem>, value: string) {
   return items.find(i => i.value === value);
 }
 
-export function ChannelSettings() {
+export default function ChannelSettings() {
   const dispatch = useAppDispatch();
   const [isRefreshingChannels, setIsRefreshingChannels] = useState(false);
 
@@ -61,17 +61,10 @@ export function ChannelSettings() {
 
   const onRefreshChannel = async () => {
     const { chat } = sharedServices;
-    const userData = getUserData(chat.generateUserId(uiState.selectedUserId), usersSettings.users);
     setIsRefreshingChannels(true);
     let channels:Array<Channel> = [];
     try {
-      if (!chat.isConnected) {
-        await chat.connect(userData.userId, userData.name);
-        channels = await chat.loadChannels();
-        await chat.disconnect();
-      } else {
-        channels = await chat.loadChannels();
-      }
+      channels = await chat.loadChannels();
       setIsRefreshingChannels(false);
       if (!uiState.selectedChannelUrl && channels.length) {
         dispatch(stateUi.setSelectedChannelUrl(channels[0].url));

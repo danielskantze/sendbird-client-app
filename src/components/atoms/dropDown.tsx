@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { Button } from './button';
+import Button from './Button';
 
 export type DropDownItem = {
     title: string;
@@ -28,7 +28,7 @@ function truncateToNChars(str:string, maxLength?:number) {
     return str;
 }
 
-export function DropDown(props: DropDownProps) {
+export default function DropDown(props: DropDownProps) {
     const { buttonTitle } = props;
     const button = buttonTitle ? (
         <Button title={buttonTitle} extraClasses={['input-group-btn']} onClick={props.onEdit} disabled={props.disabled} />

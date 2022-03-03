@@ -4,13 +4,13 @@ import { SharedServices, SharedServicesContext } from '../appcontext';
 import { ConnectionStatus } from '../store/slices/uiState';
 import * as stateMessages from '../store/slices/messages';
 import * as stateUi from '../store/slices/uiState';
-import { Button } from './atoms/button';
-import { LayoutColumn } from './atoms/layoutColumn';
-import { LayoutRow } from './atoms/layoutRow';
+import Button from './atoms/Button';
+import LayoutColumn from './atoms/LayoutColumn';
+import LayoutRow from './atoms/LayoutRow';
 import { Message } from '../services/chat';
 import * as flashMessages from '../store/flashMessages';
 
-export function WriteArea() {
+export default function WriteArea() {
   const dispatch = useAppDispatch();
   const uiState: stateUi.UIState = useAppSelector(stateUi.selector);
   const sharedServices = useContext(SharedServicesContext) as SharedServices;

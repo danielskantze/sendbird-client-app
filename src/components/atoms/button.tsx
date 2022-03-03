@@ -8,7 +8,7 @@ type ButtonProps = {
     onClick?: () => void
 };
 
-export function Button(props:ButtonProps) {
+export default function Button(props:ButtonProps) {
     const classes = ["btn"];
     if (props.type) {
         classes.push("btn-" + props.type);

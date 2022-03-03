@@ -1,12 +1,12 @@
 import React, { useState } from "react";
-import { ModalDialog } from "./modalDialog";
+import ModalDialog from "./ModalDialog";
 import {
   AppSettings,
   updateApplicationId,
   selector as appSettingsSelector,
 } from "../../store/slices/appSettings";
 import { useAppDispatch, useAppSelector } from "../../store/hooks";
-import { TextField } from "../atoms/textField";
+import TextField from "../atoms/TextField";
 
 type EditAppSettingsModalProps = {
   onClose: () => void;
@@ -15,7 +15,7 @@ type EditAppSettingsModalProps = {
 
 const SAVE_ACTION_ID = 'save';
 
-export function EditAppSettingsModal(props: EditAppSettingsModalProps) {
+export default function EditAppSettingsModal(props: EditAppSettingsModalProps) {
   const dispatch = useAppDispatch();
   const appSettings: AppSettings = useAppSelector(appSettingsSelector);
   const [applicationId, setApplicationId] = useState(appSettings.applicationId);

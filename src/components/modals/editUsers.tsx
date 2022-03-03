@@ -1,6 +1,6 @@
-import React, { useContext, useState } from 'react';
-import { Button } from '../atoms/button';
-import { ModalDialog } from './modalDialog';
+import React, { useContext, useEffect, useState } from 'react';
+import Button from '../atoms/Button';
+import ModalDialog from './ModalDialog';
 import {
   UserRepository,
   setUsers as updateUsers,
@@ -9,7 +9,7 @@ import {
   getUserData,
 } from '../../store/slices/userSettings';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
-import { TextField } from '../atoms/textField';
+import TextField from '../atoms/TextField';
 import { cssCl } from '../../util/styling';
 import { SharedServices, SharedServicesContext } from '../../appcontext';
 
@@ -55,7 +55,8 @@ type AddRowProps = {
 };
 
 function AddRow(props: AddRowProps) {
-  const [inputValues, setInputValues] = useState(props.placeholders.map(() => ''));
+  console.log("placeholders", props.placeholders);
+  const [inputValues, setInputValues] = useState([] as Array<string>);
 
   const onChangeInputValue = (text: string, fieldIndex:number) => {
     const newValues = inputValues.concat();
@@ -71,9 +72,16 @@ function AddRow(props: AddRowProps) {
 
   const onClickAdd = () => {
     props.onAddRow(inputValues);
-    console.log(onClickAdd);
-    setInputValues(props.placeholders.map(() => ''))
+    clearInputs();
   };
+
+  const clearInputs = () => {
+    setInputValues(props.placeholders.map(() => ''));
+  }
+
+  useEffect(() => {
+    clearInputs();
+  }, []);
 
   return (
     <li key={'add'} className={["add", "n-fields-" + props.placeholders.length].join(' ')}>
@@ -87,7 +95,7 @@ function AddRow(props: AddRowProps) {
   );
 }
 
-export function EditUsersModal(props: EditUsersModalProps) {
+export default function EditUsersModal(props: EditUsersModalProps) {
   const dispatch = useAppDispatch();
   const usersSettings: UserRepository = useAppSelector(usersSettingsSeleector);
   const [users, setUsers] = useState(usersSettings.users);
@@ -126,7 +134,6 @@ export function EditUsersModal(props: EditUsersModalProps) {
 
   const onAddExisting = async (values:Array<string>) => {
     const [ userId, token ] = values;
-    console.log(userId, token);
     const userData:UserData = { userId: '', name: '' };
     const userInfo = await chat.getUserInfo(userId);
     if (!userInfo) {

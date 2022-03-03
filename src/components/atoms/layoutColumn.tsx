@@ -7,7 +7,7 @@ type LayoutColumnProps = {
     extraClasses?: Array<string>
 };
 
-export function LayoutColumn(props:LayoutColumnProps) {
+export default function LayoutColumn(props:LayoutColumnProps) {
     const size = props.size ? props.size : 12;
     const classes = ["column", "col-" + size];
     switch (props.align) {

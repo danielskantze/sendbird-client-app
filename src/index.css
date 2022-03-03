@@ -185,22 +185,29 @@ body {
   cursor: default;
 }
 
-.message-menu .popover-container {
-  width: auto;
+.message-menu {
+  position: relative;
 }
 
-.popover-container .card {
+.message-menu .card {
+  display: none;
+  position: absolute;
+  right: 0px;
   border: 1px solid #dadee4;
   box-shadow: 0 0.2rem 0.5rem rgb(48 55 66 / 10%);
   background-color: white !important;
   border-radius: 0;
 }
 
-.popover-container .card-body {
+.message-menu.visible .card {
+  display: block;
+}
+
+.message-menu .card-body {
   padding: 0.5rem;
 }
 
-.popover-container .card-body:last-child {
+.message-menu .card-body:last-child {
   padding-bottom: 0.5rem;
 }
 

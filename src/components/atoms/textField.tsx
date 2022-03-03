@@ -7,7 +7,7 @@ type TextFieldProps = {
   onChange:(text:string) => void
 };
 
-export function TextField(props: TextFieldProps) {
+export default function TextField(props: TextFieldProps) {
 
   const onChange = (e: React.FormEvent<HTMLInputElement>) => {
     props.onChange(e.currentTarget.value);
@@ -18,7 +18,7 @@ export function TextField(props: TextFieldProps) {
   return (
     <div className="form-group">
       {label}
-      <input className="form-input" type="text" placeholder={props.placeholder} value={props.value} onChange={onChange} />
+      <input className="form-input" type="text" placeholder={props.placeholder} value={props.value ?? ''} onChange={onChange} />
     </div>
   );
 }

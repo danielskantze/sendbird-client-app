@@ -139,12 +139,12 @@ export class ChatService {
     Logger.main.debug('Profile updated');
   }
   async loadChannels() {
-    if (!this.isConnected) {
-      throw new Error("Not connected");
-    }
-    const listQuery = this._sendbird.OpenChannel.createOpenChannelListQuery();
-    const sbChannels = await listQuery.next();
-    return sbChannels.map(c => ({ url: c.url, name: c.name }));
+    const command = async (sb:SendBird.SendBirdInstance) => {
+      const listQuery = sb.OpenChannel.createOpenChannelListQuery();
+      const sbChannels = await listQuery.next();
+      return sbChannels.map(c => ({ url: c.url, name: c.name }));  
+    };
+    return await this._performCommandEnforceConnection(command);
   }
   async joinChannel(url: string) {
     if (!this._sendbird || !this.isConnected) {
@@ -288,8 +288,7 @@ export class ChatService {
     this._user = null;
     this._channel = null;
   }
-  // Note: Need to be connected to fetch users. If user is not connected, then use the special installationId to connect temporarily
-  async getUserInfo(userId:string) {
+  async _performCommandEnforceConnection<T>(command:(sb:SendBird.SendBirdInstance) => Promise<T>):Promise<T> {
     if (!this._serviceUserId) {
       throw new Error("serviceUserId not set");
     }
@@ -299,14 +298,22 @@ export class ChatService {
     if (!this._isConnected) {
       sb = createSendbirdInstance(config) as SendBird.SendBirdInstance;
       shouldDisconnect = true;
+      await sb.connect(this._serviceUserId);
     }
-    const query = sb.createApplicationUserListQuery();
-    query.userIdsFilter = [userId];
-    await sb.connect(this._serviceUserId);
-    const users = await query.next();
+    const result = await command(sb);
     if (shouldDisconnect) {
       await sb.disconnect();
     }
+    return result;
+  }
+  // Note: Need to be connected to fetch users. If user is not connected, then use the special installationId to connect temporarily
+  async getUserInfo(userId:string) {
+    const commandFn = async (sb:SendBird.SendBirdInstance) => {
+      const query = sb.createApplicationUserListQuery();
+      query.userIdsFilter = [userId];
+      return await query.next();
+    }
+    const users = await this._performCommandEnforceConnection(commandFn);
     return users.length > 0 ? users[0] : null;
   }
 }

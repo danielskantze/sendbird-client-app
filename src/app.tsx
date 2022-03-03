@@ -1,9 +1,10 @@
+/* eslint-disable import/no-named-as-default */
 import React, { useEffect } from 'react';
 import * as ReactDOM from 'react-dom';
-import { AppTitleBar } from './components/appTitle';
-import { ChannelSettings } from './components/channelSettings';
-import { ChatMessages } from './components/messages';
-import { WriteArea } from './components/writeArea';
+import AppTitleBar from './components/AppTitleBar';
+import ChannelSettings from './components/ChannelSettings';
+import ChatMessages from './components/ChatMessages';
+import WriteArea from './components/WriteArea';
 import { Provider } from 'react-redux';
 import { store, initializeStore } from './store/store';
 import { generateRandomId } from './services/ids';
@@ -16,7 +17,7 @@ import * as stateApp from './store/slices/appSettings';
 import * as stateUsers from './store/slices/userSettings';
 import { ChatService } from './services/chat';
 import * as flashMessages from './store/flashMessages';
-import { FlashMessage } from './components/atoms/flashMessage';
+import FlashMessage from './components/atoms/FlashMessage';
 
 type NotConnectedPlaceholderProps = {
   hasApplicationId: boolean;

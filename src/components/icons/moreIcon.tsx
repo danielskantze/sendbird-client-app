@@ -1,6 +1,6 @@
 import * as React from 'react';
 
-export function MoreIcon() {
+export default function MoreIcon() {
   return (
    <div>⋯</div>
   )
