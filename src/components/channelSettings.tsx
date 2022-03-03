@@ -9,7 +9,7 @@ import {
   setChannels as updateChannels,
   selector as channelSettingsSelector,
 } from '../store/slices/channelSettings';
-import { getUserData, UserData, selector as usersSettingsSelector } from '../store/slices/userSettings';
+import { UserData, selector as usersSettingsSelector } from '../store/slices/userSettings';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import * as stateUi from '../store/slices/uiState';
 import { SharedServices, SharedServicesContext } from '../appcontext';

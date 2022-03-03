@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef, useState } from 'react';
 import { cssCl } from '../../util/styling';
 import MoreIcon from '../icons/MoreIcon';
 
@@ -8,37 +8,54 @@ export type ContextMenuItem = {
   danger?: boolean;
 };
 
+export enum MenuAlign {
+  Left = 'left',
+  Right = 'right',
+}
+
 type ContextMenuItemsProps = {
-  isVisible: boolean;
-  items: Array<ContextMenuItem>;
-  onItem: (item: ContextMenuItem) => void;
-  onTrigger: () => void;
+  items: Array<ContextMenuItem>,
+  align: MenuAlign,
+  onItem?: (item: ContextMenuItem) => void,
+  onTrigger?: () => void,
 };
 
 export default function ContextMenu(props: ContextMenuItemsProps) {
+  const [isVisible, setIsVisible] = useState(false);
+  const [canHide, setCanHide] = useState(false);
+  
   function createClickFn(item: ContextMenuItem) {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    return (e: any) => {
+    return (e: React.MouseEvent<HTMLAnchorElement, MouseEvent>) => {
       e.preventDefault();
       e.stopPropagation();
       props.onItem(item);
     };
   }
   function onTrigger(e: React.MouseEvent<HTMLAnchorElement, MouseEvent>) {
-    console.log('onTrigger');
     e.preventDefault();
     e.stopPropagation();
-    props.onTrigger();
+    setIsVisible(true);
+    setCanHide(false);
+  }
+
+  function onMouseEnterClickArea(e: React.MouseEvent<HTMLElement, MouseEvent>) {
+    if (canHide) {
+      setIsVisible(false);
+    }
+  }
+
+  function onMouseEnterItems(e: React.MouseEvent<HTMLElement, MouseEvent>) {
+    setCanHide(true);
   }
 
   return (
-    <div className={cssCl('message-menu', [props.isVisible, 'visible'])}>
+    <div className={cssCl('message-menu', [[isVisible, 'visible'], [props.align === MenuAlign.Right, MenuAlign.Right]])}>
       <div className="menu-button text text-primary">
         <a href="#" onClick={onTrigger}>
           <MoreIcon />
         </a>
       </div>
-      <div className="card">
+      <div className="card" onMouseEnter={onMouseEnterItems}>
         <ul className="card-body menu">
           {props.items.map(i => (
             <li key={i.id} className={cssCl('item menu-item text-dark', [!!i.danger, 'text-error'])}>
@@ -49,6 +66,7 @@ export default function ContextMenu(props: ContextMenuItemsProps) {
           ))}
         </ul>
       </div>
+      <div className='click-area' onMouseEnter={onMouseEnterClickArea}></div>
     </div>
   );
 }

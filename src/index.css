@@ -181,6 +181,11 @@ body {
   margin-right: 0.5rem;
 }
 
+.chat-message .menu-button a:focus {
+  text-decoration: none;
+  box-shadow: none;
+}
+
 .message-menu .item {
   cursor: default;
 }
@@ -189,14 +194,37 @@ body {
   position: relative;
 }
 
+.message-menu .click-area {
+  position: absolute;
+  top: -200px;
+  left: -200px;
+  width: 800px;
+  height: 800px;
+  z-index: 2;
+  background-color: transparent;
+  display: none;
+}
+
+.message-menu.visible .click-area {
+  display: block;
+}
+
 .message-menu .card {
   display: none;
   position: absolute;
-  right: 0px;
   border: 1px solid #dadee4;
   box-shadow: 0 0.2rem 0.5rem rgb(48 55 66 / 10%);
   background-color: white !important;
   border-radius: 0;
+  z-index: 100;
+}
+
+.message-menu:not(.right) .card {
+  left: 0;
+}
+
+.message-menu.right .card {
+  right: 0;
 }
 
 .message-menu.visible .card {

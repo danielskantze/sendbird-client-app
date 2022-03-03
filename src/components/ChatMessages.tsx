@@ -10,7 +10,7 @@ import * as flashMessages from '../store/flashMessages';
 import LayoutColumn from './atoms/LayoutColumn';
 import LayoutRow from './atoms/LayoutRow';
 import Button from './atoms/Button';
-import ContextMenu, { ContextMenuItem } from './atoms/ContextMenu';
+import ContextMenu, { ContextMenuItem, MenuAlign } from './atoms/ContextMenu';
 
 enum Action {
   None,
@@ -59,13 +59,11 @@ function EditChatMessage(props: EditChatMessageProps) {
 }
 
 type MessageProps = {
-  message: Message;
-  isOwner?: boolean;
-  isOperator?: boolean;
-  showMenu: boolean;
-  onDeleteItem?: (messageId: number) => void;
-  onUpdateItem?: (messageId: number, text:string) => void;
-  onClickMenu: (messageId: number) => void;
+  message: Message,
+  isOwner?: boolean,
+  isOperator?: boolean,
+  onDeleteItem?: (messageId: number) => void,
+  onUpdateItem?: (messageId: number, text:string) => void,
 };
 
 function ChatMessage(props: MessageProps) {
@@ -82,15 +80,14 @@ function ChatMessage(props: MessageProps) {
 
   const hasMenu = props.onDeleteItem || props.onUpdateItem;
 
-  const onCancelEdit = () => {
+  const onEditCancel = () => {
     setIsEditing(false);
   }
 
-  const onClickMenuTrigger = () => {
-    props.onClickMenu(props.message.id);
-  };
-
-  console.log("MESSAGE", props.message.id, props.showMenu);
+  const onEditSave = (messageId: number, text:string) => {
+    setIsEditing(false);
+    props.onUpdateItem(messageId, text);
+  }
 
   if (hasMenu) {
     const onMenuItemClick = (menuItem: ContextMenuItem) => {
@@ -115,7 +112,7 @@ function ChatMessage(props: MessageProps) {
     if (props.onDeleteItem) {
       menuItems.push({ id: 'delete', title: 'Delete', danger: true });
     }
-    menu = <ContextMenu items={menuItems} onItem={onMenuItemClick} onTrigger={onClickMenuTrigger} isVisible={props.showMenu} />;
+    menu = <ContextMenu items={menuItems} onItem={onMenuItemClick} align={MenuAlign.Right} />;
   }
 
   if (props.isOwner) {
@@ -136,7 +133,7 @@ function ChatMessage(props: MessageProps) {
         {menu}
       </div>
       {isEditing ? (
-        <EditChatMessage extraClasses={extraClasses} onCancel={onCancelEdit} onSave={props.onUpdateItem} message={props.message} />
+        <EditChatMessage extraClasses={extraClasses} onCancel={onEditCancel} onSave={onEditSave} message={props.message} />
       ) : (
         <div className={['card', ...extraClasses].join(' ')}>
           <div className="card-body">
@@ -165,7 +162,6 @@ export default function ChatMessages() {
   const emptyQuery: PreviousListQueryWrapper = { query: null };
   const [previousListQuery, setPreviousListQuery] = useState(emptyQuery);
   const [operatorIds, setOperatorIds] = useState(new Set<string>());
-  const [menuMessageId, setMenuMessageId] = useState(null);
 
   const incomingMessageHandler = (type: MessageEventType, messageId: number, message: Message) => {
     switch (type) {
@@ -255,10 +251,6 @@ export default function ChatMessages() {
     return chat.userId === m.senderId ||
       chat.operatorIds.has(chat.userId);
   };
-
-  const onShowMenu = (messageId:number) => {
-    setMenuMessageId(messageId);
-  };
  
   useEffect(onConnectionStatusChange, [uiState]);
   useEffect(() => {
@@ -301,8 +293,6 @@ export default function ChatMessages() {
                   isOperator={operatorIds.has(m.senderId)}
                   onDeleteItem={canDelete(m) ? onDeleteItem : null}
                   onUpdateItem={canEdit(m) ? onUpdateItem : null}
-                  onClickMenu={onShowMenu}
-                  showMenu={m.id === menuMessageId}
                 />
               </span>
             </LayoutColumn>
