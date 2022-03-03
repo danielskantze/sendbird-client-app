@@ -10,6 +10,7 @@ import { ConnectionStatus } from '../store/slices/uiState';
 import { Button } from './atoms/button';
 import * as flashMessages from '../store/flashMessages';
 import { MoreIcon } from './icons/moreIcon';
+import { cssCl } from '../util/styling';
 
 enum Action {
   None,
@@ -19,6 +20,7 @@ enum Action {
 type MessageMenuItem = {
   id: string;
   title: string;
+  danger?: boolean;
 };
 
 type MessageMenuItemsProps = {
@@ -38,17 +40,60 @@ function MessagePopover(props: MessageMenuItemsProps) {
 
   return (
     <div className="popover popover-right message-menu">
-      <div className="menu-button text text-primary"><MoreIcon /></div>
+      <div className="menu-button text text-primary">
+        <MoreIcon />
+      </div>
       <div className="popover-container">
         <div className="card">
-          <div className="card-body">
+          <ul className="card-body menu">
             {props.items.map(i => (
-              <div key={i.id} className="item" onClick={createClickFn(i)}>
-                {i.title}
-              </div>
+              <li key={i.id} className={cssCl("item menu-item text-dark", [!!i.danger, "text-error"])}>
+                <a href="#" onClick={createClickFn(i)}>{i.title}</a>
+              </li>
             ))}
+          </ul>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+type EditChatMessageProps = {
+  extraClasses: Array<string>,
+  message: Message,
+  onCancel: () => void,
+  onSave:(messageId:number, text:string) => void,
+};
+
+function EditChatMessage(props: EditChatMessageProps) {
+  const [inputText, setInputText] = useState(props.message.message);
+    
+  const onSave = () => {
+    console.log("onSave", props.message.id, inputText);
+    props.onSave(props.message.id, inputText);
+  };
+ 
+  const onChange = (e: React.FormEvent<HTMLTextAreaElement>) => {
+    setInputText(e.currentTarget.value);
+  };
+
+  return (
+    <div>
+      <div className={['card', ...props.extraClasses].join(' ')}>
+        <div className="card-body">
+          <div className="form-group">
+            <textarea
+              className="form-input"
+              id="new-message"
+              rows={3}
+              onChange={onChange}
+              value={inputText}></textarea>
           </div>
         </div>
+      </div>
+      <div className="actions float-right">
+        <Button title={'Cancel'} extraClasses={['btn-sm', 'mx-2']} onClick={props.onCancel}></Button>
+        <Button title={'Save'} extraClasses={['btn-sm']} onClick={onSave}></Button>
       </div>
     </div>
   );
@@ -59,30 +104,54 @@ type MessageProps = {
   isOwner?: boolean;
   isOperator?: boolean;
   onDeleteItem?: (messageId: number) => void;
+  onUpdateItem?: (messageId: number, text:string) => void;
 };
 
 function ChatMessage(props: MessageProps) {
   let menu: JSX.Element = null;
   const extraClasses: Array<string> = [];
+  const [isEditing, setIsEditing] = useState(false);
 
-  function formatDate(epoch:number) {
+  function formatDate(epoch: number) {
     const date = new Date(epoch);
     const dateStr = JSON.stringify(date).split('T')[0].substring(1);
     const timeStr = date.toLocaleTimeString();
-    return dateStr + " " + timeStr;
+    return dateStr + ' ' + timeStr;
+  }
+
+  const hasMenu = props.onDeleteItem || props.onUpdateItem;
+
+  const onCancelEdit = () => {
+    setIsEditing(false);
+  }
+
+  if (hasMenu) {
+    const onMenuItemClick = (menuItem: MessageMenuItem) => {
+      console.log('Clicked item', menuItem.id);
+      switch (menuItem.id) {
+        case 'delete':
+          setIsEditing(false);
+          console.assert(props.onDeleteItem, 'Missing onDeleteItem, this is an error');
+          if (props.onDeleteItem) {
+            props.onDeleteItem(props.message.id);
+          }
+          break;
+        case 'edit':
+          setIsEditing(true);
+          break;
+      }
+    };
+    const menuItems = [];
+    if (props.onUpdateItem) {
+      menuItems.push({ id: 'edit', title: 'Edit' });
+    }
+    if (props.onDeleteItem) {
+      menuItems.push({ id: 'delete', title: 'Delete', danger: true });
+    }
+    menu = <MessagePopover items={menuItems} onItemClick={onMenuItemClick} />;
   }
 
   if (props.isOwner) {
-    const onMenuItemClick = (menuItem: MessageMenuItem) => {
-      console.log('Clicked item', menuItem.id);
-      if (menuItem.id === 'delete') {
-        console.assert(props.onDeleteItem, 'Missing onDeleteItem, this is an error');
-        if (props.onDeleteItem) {
-          props.onDeleteItem(props.message.id);
-        }
-      }
-    };
-    menu = <MessagePopover items={[{ id: 'delete', title: 'Delete' }]} onItemClick={onMenuItemClick} />;
     extraClasses.push('owner');
   }
 
@@ -91,19 +160,23 @@ function ChatMessage(props: MessageProps) {
   }
 
   return (
-    <div className='chat-message'>
+    <div className="chat-message">
       <div className="header">
         <div className="left">
-          <span className="nickname">{props.message.nickname}</span>
           <span className="text-tiny">{formatDate(props.message.createdAt)}</span>
+          <span className="nickname">{props.message.nickname}</span>
         </div>
         {menu}
       </div>
-    <div className={['card', ...extraClasses].join(' ')}>
-      <div className="card-body">
-        <p>{props.message.message}</p>
-      </div>
-    </div>
+      {isEditing ? (
+        <EditChatMessage extraClasses={extraClasses} onCancel={onCancelEdit} onSave={props.onUpdateItem} message={props.message} />
+      ) : (
+        <div className={['card', ...extraClasses].join(' ')}>
+          <div className="card-body">
+            <p>{props.message.message}</p>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -118,6 +191,7 @@ export function ChatMessages() {
   const uiState = useAppSelector(stateUi.selector);
   const messages = useAppSelector(stateMessages.selector);
   const sharedServices = useContext(SharedServicesContext) as SharedServices;
+  const { chat } = sharedServices;
   const dispatch = useAppDispatch();
   const lastElementRef = useRef(null);
   const firstElementRef = useRef(null);
@@ -140,7 +214,6 @@ export function ChatMessages() {
   };
 
   const addMessageHandler = async () => {
-    const { chat } = sharedServices;
     try {
       const query = chat.createPreviousListQuery();
       setPreviousListQuery({ query });
@@ -155,7 +228,7 @@ export function ChatMessages() {
 
   const onDisconnectHandler = async () => {
     try {
-      sharedServices.chat.clearMessageHandler();
+      chat.clearMessageHandler();
       setPreviousListQuery(emptyQuery);
       setOperatorIds(new Set<string>());
       dispatch(stateMessages.clearMessages());
@@ -185,6 +258,13 @@ export function ChatMessages() {
     });
   };
 
+  const onUpdateItem = (messageId: number, text:string) => {
+    const { chat } = sharedServices;
+    chat.updateUserMessageWithId(messageId, text).catch(e => {
+      dispatch(stateUi.addFlashMessage(flashMessages.fromError(e)));
+    });
+  };
+
   const onLoadMore = () => {
     const { chat } = sharedServices;
     const { query } = previousListQuery;
@@ -199,6 +279,15 @@ export function ChatMessages() {
       });
   };
 
+  const canEdit = (m:Message) => {
+    return chat.userId === m.senderId
+  }
+
+  const canDelete = (m:Message) => {
+    return chat.userId === m.senderId ||
+      chat.operatorIds.has(chat.userId);
+  }
+ 
   useEffect(onConnectionStatusChange, [uiState]);
   useEffect(() => {
     if (currentAction === Action.LoadMore) {
@@ -236,9 +325,10 @@ export function ChatMessages() {
               <span ref={i === messages.messages.length - 1 ? lastElementRef : null}>
                 <ChatMessage
                   message={m}
-                  isOwner={sharedServices.chat.userId === m.senderId}
+                  isOwner={chat.userId === m.senderId}
                   isOperator={operatorIds.has(m.senderId)}
-                  onDeleteItem={sharedServices.chat.userId === m.senderId ? onDeleteItem : null}
+                  onDeleteItem={canDelete(m) ? onDeleteItem : null}
+                  onUpdateItem={canEdit(m) ? onUpdateItem : null}
                 />
               </span>
             </LayoutColumn>

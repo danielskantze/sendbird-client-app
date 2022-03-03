@@ -215,6 +215,24 @@ export class ChatService {
     await this._channel.deleteMessage(message as any);
     return generalMessage;  
   }
+  async updateUserMessageWithId(messageId: number, text:string): Promise<Message> {
+    if (!this.isConnected || !this._channel) {
+      throw new Error('Not connected');
+    }
+    const params = new this._sendbird.UserMessageParams();
+    params.message = text;
+
+    return new Promise<Message>((resolve, reject) => {
+      this._channel.updateUserMessage(messageId, params, (message, error) => {
+        if (error) {
+          reject(error);
+          return;
+        }
+        const generalMessage = sbMessageToGeneralMessage(message);
+        resolve(generalMessage);
+      });
+    });
+}
   async deleteMessageWithId(messageId: number): Promise<Message> {
     if (!this.isConnected || !this._channel) {
       throw new Error('Not connected');
@@ -241,6 +259,7 @@ export class ChatService {
       handlerFn(MessageEventType.Deleted, messageId);
     };
     const onMessageUpdated: OnMessageUpdateOrAddCallback = (channel, message) => {
+      console.log("onMessageUpdated");
       const gm = sbMessageToGeneralMessage(message);
       handlerFn(MessageEventType.Updated, gm.id, gm);
     };

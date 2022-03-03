@@ -150,6 +150,13 @@ body {
   color: white;
 }
 
+.chat-message textarea {
+  background-color: rgba(255, 255, 255, 0.1);
+  color: white;
+  border: none;
+  border-radius: 0.25rem;
+}
+
 .chat-message .header {
   display: flex;
   flex-direction: row;
@@ -162,6 +169,10 @@ body {
   margin-left: 0.5rem;
   font-weight: bold;
   margin-right: 0.5rem;
+}
+
+.chat-message .menu {
+  min-width: 100px;
 }
 
 .chat-message .menu-button {
@@ -181,6 +192,8 @@ body {
 .popover-container .card {
   border: 1px solid #dadee4;
   box-shadow: 0 0.2rem 0.5rem rgb(48 55 66 / 10%);
+  background-color: white !important;
+  border-radius: 0;
 }
 
 .popover-container .card-body {
