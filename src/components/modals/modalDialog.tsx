@@ -4,7 +4,7 @@ import Button from '../atoms/Button';
 export type ModalDialogButtonAction = {
     title: string;
     id: string;
-    type?: string;
+    color?: string;
 };
 
 export interface ModalDialogProps {
@@ -67,7 +67,7 @@ export default function ModalDialog(props: ModalDialogProps) {
                 <div className={footerClasses.join(' ')}>
                     {props.footerContent || ''}
                     {props.actions.map(a => (
-                        <Button key={a.id} title={a.title} onClick={createActionHandler(a.id)} />
+                        <Button key={a.id} title={a.title} color={a.color} onClick={createActionHandler(a.id)} />
                     ))}
                 </div>
             </div>

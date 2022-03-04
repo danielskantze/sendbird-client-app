@@ -9,6 +9,11 @@ body {
   max-height: 100%;  
 }
 
+.button-danger {
+  border-color: #e85600!important;
+  color: #e85600!important;
+}
+
 .app {
   display: flex;
   flex-direction: column;

@@ -29,6 +29,8 @@ export default function ContextMenu(props: ContextMenuItemsProps) {
       e.preventDefault();
       e.stopPropagation();
       props.onItem(item);
+      setIsVisible(false);
+      setCanHide(false);
     };
   }
   function onTrigger(e: React.MouseEvent<HTMLAnchorElement, MouseEvent>) {

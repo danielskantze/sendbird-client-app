@@ -56,3 +56,8 @@ Better handling of scroll position when it re-renders (should keep position unle
 CSS could be restructured and improved and support easier theming. 
 
 CSS could be moved to components instead of using a single file
+
+## TODO
+
+- Confirm delete with modal dialog
+- Indicate super user

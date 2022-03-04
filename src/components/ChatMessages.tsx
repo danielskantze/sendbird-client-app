@@ -11,6 +11,7 @@ import LayoutColumn from './atoms/LayoutColumn';
 import LayoutRow from './atoms/LayoutRow';
 import Button from './atoms/Button';
 import ContextMenu, { ContextMenuItem, MenuAlign } from './atoms/ContextMenu';
+import ConfirmAction from './modals/ConfirmAction';
 
 enum Action {
   None,
@@ -162,6 +163,8 @@ export default function ChatMessages() {
   const emptyQuery: PreviousListQueryWrapper = { query: null };
   const [previousListQuery, setPreviousListQuery] = useState(emptyQuery);
   const [operatorIds, setOperatorIds] = useState(new Set<string>());
+  const [deleteMessageId, setDeleteMessageId] = useState(null);
+  let confirmDeleteModal:JSX.Element = null;
 
   const incomingMessageHandler = (type: MessageEventType, messageId: number, message: Message) => {
     switch (type) {
@@ -214,13 +217,13 @@ export default function ChatMessages() {
         break;
     }
   };
-
-  const onDeleteItem = (messageId: number) => {
+  
+  const onDeleteItem = (messageId:number) => {
     const { chat } = sharedServices;
     chat.deleteMessageWithId(messageId).catch(e => {
       dispatch(stateUi.addFlashMessage(flashMessages.fromError(e)));
     });
-  };
+  }
 
   const onUpdateItem = (messageId: number, text:string) => {
     const { chat } = sharedServices;
@@ -279,6 +282,17 @@ export default function ChatMessages() {
       ''
     );
 
+    if (deleteMessageId !== null) {
+      confirmDeleteModal = <ConfirmAction 
+        title={'Delete message?'} 
+        body={'The message will be deleted. This cannot be undone. '} 
+        onClose={() => { setDeleteMessageId(null); }} 
+        onConfirm={() => { 
+          onDeleteItem(deleteMessageId); 
+          setDeleteMessageId(null); 
+        }} />
+    }
+
   return (
     <LayoutRow>
       <LayoutColumn>
@@ -291,13 +305,14 @@ export default function ChatMessages() {
                   message={m}
                   isOwner={chat.userId === m.senderId}
                   isOperator={operatorIds.has(m.senderId)}
-                  onDeleteItem={canDelete(m) ? onDeleteItem : null}
+                  onDeleteItem={canDelete(m) ? setDeleteMessageId : null}
                   onUpdateItem={canEdit(m) ? onUpdateItem : null}
                 />
               </span>
             </LayoutColumn>
           </LayoutRow>
         ))}
+        {confirmDeleteModal}
       </LayoutColumn>
     </LayoutRow>
   );

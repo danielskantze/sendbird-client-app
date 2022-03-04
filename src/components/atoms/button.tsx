@@ -2,6 +2,7 @@ import * as React from "react";
 
 type ButtonProps = {
     type?: string,
+    color?: string,
     title: string | JSX.Element,
     disabled?: boolean,
     extraClasses?: Array<string>,
@@ -15,6 +16,9 @@ export default function Button(props:ButtonProps) {
     }
     if (props.extraClasses) {
         props.extraClasses.forEach(c => classes.push(c));
+    }
+    if (props.color) {
+        classes.push('button-' + props.color);
     }
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const onClick = (e:any) => {
