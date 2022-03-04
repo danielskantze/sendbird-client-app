@@ -22,8 +22,12 @@ function channelsToDropDownItems(channels: Array<ChannelDescriptor>): Array<Drop
   return channels.map(c => ({ title: c.name, value: c.url } as DropDownItem));
 }
 
-function usersToDropDownItems(users: Array<UserData>): Array<DropDownItem> {
-  return users.map(c => ({ title: c.name, value: c.userId } as DropDownItem));
+function usersToDropDownItems(users: Array<UserData>, operatorIds:Array<string>): Array<DropDownItem> {
+  const lookup = new Set(operatorIds);
+  return users.map(c => ({ 
+    title: lookup.has(c.userId) ? '⭐ ' + c.name : c.name, 
+    value: c.userId 
+  } as DropDownItem));
 }
 
 function dropdownItemWithValue(items: Array<DropDownItem>, value: string) {
@@ -99,7 +103,7 @@ export default function ChannelSettings() {
   };
   const channelOptions = channelsToDropDownItems(channelSettings.channels);
   const selectedChannelItem = dropdownItemWithValue(channelOptions, uiState.selectedChannelUrl);
-  const usersOptions = usersToDropDownItems(usersSettings.users);
+  const usersOptions = usersToDropDownItems(usersSettings.users, uiState.operatorIds);
   const selectedUser = dropdownItemWithValue(usersOptions, uiState.selectedUserId);
   return (
     <div className="channel-settings-container">

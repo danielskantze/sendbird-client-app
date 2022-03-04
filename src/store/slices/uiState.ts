@@ -6,6 +6,7 @@ import { BaseState } from './basetypes';
 export interface UIState extends BaseState {
   selectedChannelUrl: string;
   selectedUserId: string;
+  operatorIds: Array<string>;
   connectionStatus: ConnectionStatus;
   errors: Array<FlashMessage>;
 }
@@ -19,6 +20,7 @@ export enum ConnectionStatus {
 const initialState: UIState = {
   selectedChannelUrl: '',
   selectedUserId: '',
+  operatorIds: new Array<string>(),
   connectionStatus: ConnectionStatus.Disconnected,
   errors: [],
 };
@@ -50,6 +52,10 @@ const slice = createSlice({
       console.log('setSelectedUserId', action.payload);
       state.selectedUserId = action.payload;
       saveConfig('uistate', persistedState(state));
+    },
+    setOperatorIds: (state, action: PayloadAction<Array<string>>) => {
+      console.log('setOperatorIds', action.payload);
+      state.operatorIds = action.payload;
     },
     setConnected: state => {
       state.connectionStatus = ConnectionStatus.Connected;
@@ -90,6 +96,7 @@ const slice = createSlice({
 export const {
   setSelectedChannelUrl,
   setSelectedUserId,
+  setOperatorIds,
   setConnected,
   setDisconnected,
   setJoinedChannel,

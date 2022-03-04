@@ -162,9 +162,9 @@ export default function ChatMessages() {
   const firstElementRef = useRef(null);
   const emptyQuery: PreviousListQueryWrapper = { query: null };
   const [previousListQuery, setPreviousListQuery] = useState(emptyQuery);
-  const [operatorIds, setOperatorIds] = useState(new Set<string>());
   const [deleteMessageId, setDeleteMessageId] = useState(null);
   let confirmDeleteModal:JSX.Element = null;
+  const operatorLookup = new Set(uiState.operatorIds);
 
   const incomingMessageHandler = (type: MessageEventType, messageId: number, message: Message) => {
     switch (type) {
@@ -185,7 +185,6 @@ export default function ChatMessages() {
       const query = chat.createPreviousListQuery();
       setPreviousListQuery({ query });
       const loadedMessages = (await chat.loadPreviousMessages(query)) as Array<Message>;
-      setOperatorIds(chat.operatorIds);
       dispatch(stateMessages.setMessages(loadedMessages));
       chat.setMessageHandler(incomingMessageHandler);
     } catch (e) {
@@ -197,7 +196,6 @@ export default function ChatMessages() {
     try {
       chat.clearMessageHandler();
       setPreviousListQuery(emptyQuery);
-      setOperatorIds(new Set<string>());
       dispatch(stateMessages.clearMessages());
     } catch (e) {
       dispatch(stateUi.addFlashMessage(flashMessages.fromError(e, 'clear-message-handler-error')));
@@ -227,7 +225,11 @@ export default function ChatMessages() {
 
   const onUpdateItem = (messageId: number, text:string) => {
     const { chat } = sharedServices;
-    chat.updateUserMessageWithId(messageId, text).catch(e => {
+    chat.updateUserMessageWithId(messageId, text)
+    .then((message:Message) => {
+        dispatch(stateMessages.updateMessage(message));
+    })
+    .catch(e => {
       dispatch(stateUi.addFlashMessage(flashMessages.fromError(e)));
     });
   };
@@ -252,7 +254,7 @@ export default function ChatMessages() {
 
   const canDelete = (m:Message) => {
     return chat.userId === m.senderId ||
-      chat.operatorIds.has(chat.userId);
+      operatorLookup.has(chat.userId);
   };
  
   useEffect(onConnectionStatusChange, [uiState]);
@@ -299,12 +301,12 @@ export default function ChatMessages() {
         {loadMoreButton}
         {messages.messages.map((m: Message, i: number) => (
           <LayoutRow key={i}>
-            <LayoutColumn size={11} align={operatorIds.has(m.senderId) ? 'right' : 'left'}>
+            <LayoutColumn size={11} align={operatorLookup.has(m.senderId) ? 'right' : 'left'}>
               <span ref={i === messages.messages.length - 1 ? lastElementRef : null}>
                 <ChatMessage
                   message={m}
                   isOwner={chat.userId === m.senderId}
-                  isOperator={operatorIds.has(m.senderId)}
+                  isOperator={operatorLookup.has(m.senderId)}
                   onDeleteItem={canDelete(m) ? setDeleteMessageId : null}
                   onUpdateItem={canEdit(m) ? onUpdateItem : null}
                 />

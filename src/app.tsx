@@ -72,6 +72,7 @@ function App() {
       await chat.connect(chatUserId, userData.name, userData.token);
       dispatch(stateUi.setConnected());
       await chat.joinChannel(uiState.selectedChannelUrl);
+      dispatch(stateUi.setOperatorIds(Array.from(chat.operatorIds)));
       dispatch(stateUi.setJoinedChannel());
     } catch (e) {
       console.error(e);
@@ -83,6 +84,7 @@ function App() {
           )
         )
       );
+      dispatch(stateUi.setOperatorIds([]));
       dispatch(stateUi.setDisconnected());
     }
   };
@@ -91,6 +93,7 @@ function App() {
     const { chat } = sharedServices;
     try {
       await chat.disconnect();
+      dispatch(stateUi.setOperatorIds([]));
       dispatch(stateUi.setDisconnected());
     } catch (e) {
       dispatch(stateUi.addFlashMessage(flashMessages.fromError(e)));

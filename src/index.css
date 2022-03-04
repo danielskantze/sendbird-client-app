@@ -224,6 +224,12 @@ body {
   z-index: 100;
 }
 
+.message-menu .card-body {
+  box-shadow: none;
+  padding-top: 0;
+  border-radius: 0;
+}
+
 .message-menu:not(.right) .card {
   left: 0;
 }
@@ -238,10 +244,6 @@ body {
 
 .message-menu .card-body {
   padding: 0.5rem;
-}
-
-.message-menu .card-body:last-child {
-  padding-bottom: 0.5rem;
 }
 
 .write-actions {
