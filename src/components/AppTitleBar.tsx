@@ -12,6 +12,7 @@ type AppTitleProps = {
 export default function AppTitleBar(props: AppTitleProps) {
   const dispatch = useAppDispatch();
   const [appSettingsVisible, setAppSettingsVisible] = useState(false);
+
   
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const onClickAppSettings = (e: any) => {
@@ -28,7 +29,6 @@ export default function AppTitleBar(props: AppTitleProps) {
     dispatch(stateUi.setDisconnected());
     setAppSettingsVisible(false);
   };
-
   return (
     <div className="header-row">
       {appSettingsVisible ? <EditAppSettingsModal onClose={onModalClose} onSave={onModalSave}/> : ""}

@@ -8,5 +8,6 @@ export async function loadConfig(key:string, defaultConfig?:object):Promise<obje
 }
 
 export async function saveConfig(key:string, config:object):Promise<void> {
+    console.log("saveConfig", key, config);
     return electron.saveConfig(key, JSON.stringify(config));
 }

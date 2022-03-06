@@ -1,5 +1,5 @@
 /* eslint-disable import/no-named-as-default */
-import React, { useEffect } from 'react';
+import React, { useContext, useEffect } from 'react';
 import * as ReactDOM from 'react-dom';
 import AppTitleBar from './components/AppTitleBar';
 import ChannelSettings from './components/ChannelSettings';
@@ -18,6 +18,7 @@ import * as stateUsers from './store/slices/userSettings';
 import { ChatService } from './services/chat';
 import * as flashMessages from './store/flashMessages';
 import FlashMessage from './components/atoms/FlashMessage';
+import { SettingsContext, SettingsProvider } from './store/contexts/app';
 
 type NotConnectedPlaceholderProps = {
   hasApplicationId: boolean;
@@ -58,11 +59,14 @@ const sharedServices: SharedServices = {
   chat: new ChatService(null, null),
 };
 
+
 function App() {
   const dispatch = useAppDispatch();
   const appState: stateApp.AppSettings = useAppSelector(stateApp.selector);
   const uiState: stateUi.UIState = useAppSelector(stateUi.selector);
   const userState: stateUsers.UserRepository = useAppSelector(stateUsers.selector);
+  const { applicationId, installationId } = useContext(SettingsContext);
+  
 
   const chatConnect = async () => {
     const { chat } = sharedServices;
@@ -119,7 +123,8 @@ function App() {
   };
 
   const onAppstateChange: React.EffectCallback = () => {
-    sharedServices.chat = new ChatService(appState.applicationId, appState.installationId);
+      console.log(applicationId);
+    sharedServices.chat = new ChatService(applicationId, installationId);
   };
 
   const onAckError = (id: string) => {
@@ -131,46 +136,57 @@ function App() {
       dispatch(stateUi.addFlashMessage(flashMessages.fromError(e)));
     });
   }, []);
-  useEffect(onAppstateChange, [appState]);
+  useEffect(onAppstateChange, [applicationId]);
   useEffect(onConnectionStatusChange, [uiState]);
 
   return (
-    <SharedServicesContext.Provider value={sharedServices}>
-      <div className="app">
-        <div className="flash-messages">
-          {uiState.errors.map(e => (
-            <FlashMessage key={e.id} id={e.id} type="error" message={e.message} onClear={onAckError} />
-          ))}
+      <SharedServicesContext.Provider value={sharedServices}>
+        <div className="app">
+          <div className="flash-messages">
+            {uiState.errors.map(e => (
+              <FlashMessage key={e.id} id={e.id} type="error" message={e.message} onClear={onAckError} />
+            ))}
+          </div>
+          <div className="header-area">
+            <AppTitleBar title="Sendbird Chat Client" />
+            <ChannelSettings />
+          </div>
+          <div className="divider no-bottom-margin"></div>
+          <div className="messages-area">
+            {uiState.connectionStatus === ConnectionStatus.JoinedChannel ? (
+              <ChatMessages />
+            ) : (
+              <NotConnectedPlaceholder
+                hasApplicationId={appState.applicationId?.length > 0}
+                hasChannel={uiState.selectedChannelUrl?.length > 0}
+                hasUser={uiState.selectedUserId?.length > 0}
+              />
+            )}
+          </div>
+          <div className="divider no-top-margin"></div>
+          <div className="write-area">
+            <WriteArea />
+          </div>
         </div>
-        <div className="header-area">
-          <AppTitleBar title="Sendbird Chat Client" />
-          <ChannelSettings />
-        </div>
-        <div className="divider no-bottom-margin"></div>
-        <div className="messages-area">
-          {uiState.connectionStatus === ConnectionStatus.JoinedChannel ? (
-            <ChatMessages />
-          ) : (
-            <NotConnectedPlaceholder
-              hasApplicationId={appState.applicationId?.length > 0}
-              hasChannel={uiState.selectedChannelUrl?.length > 0}
-              hasUser={uiState.selectedUserId?.length > 0}
-            />
-          )}
-        </div>
-        <div className="divider no-top-margin"></div>
-        <div className="write-area">
-          <WriteArea />
-        </div>
-      </div>
-    </SharedServicesContext.Provider>
+      </SharedServicesContext.Provider>
   );
 }
+
+function StatefulApp() {
+    return (
+        <SettingsProvider>
+            <SettingsProvider>
+                <App />            
+            </SettingsProvider>
+        </SettingsProvider>
+    );
+}
+
 
 function render() {
   ReactDOM.render(
     <Provider store={store}>
-      <App />
+      <StatefulApp />
     </Provider>,
     document.getElementById('root')
   );

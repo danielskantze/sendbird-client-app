@@ -1,12 +1,7 @@
-import React, { useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import ModalDialog from "./ModalDialog";
-import {
-  AppSettings,
-  updateApplicationId,
-  selector as appSettingsSelector,
-} from "../../store/slices/appSettings";
-import { useAppDispatch, useAppSelector } from "../../store/hooks";
 import TextField from "../atoms/TextField";
+import { SettingsContext } from "../../store/contexts/app";
 
 type EditAppSettingsModalProps = {
   onClose: () => void;
@@ -16,21 +11,24 @@ type EditAppSettingsModalProps = {
 const SAVE_ACTION_ID = 'save';
 
 export default function EditAppSettingsModal(props: EditAppSettingsModalProps) {
-  const dispatch = useAppDispatch();
-  const appSettings: AppSettings = useAppSelector(appSettingsSelector);
-  const [applicationId, setApplicationId] = useState(appSettings.applicationId);
+  const { applicationId, setApplicationId } = useContext(SettingsContext);
+  const [inputValue, setInputValue] = useState('');
 
   const onAction = (id: string) => {
     switch (id) {
       case SAVE_ACTION_ID:
-        dispatch(updateApplicationId(applicationId));
+        setApplicationId(inputValue);
         props.onSave();
         break;
     }
   };
 
+  useEffect(() => {
+    setInputValue(applicationId);
+  }, [applicationId]);
+
   const onChange = (text:string) => {
-    setApplicationId(text);
+    setInputValue(text);
   };
 
   return (
@@ -41,7 +39,7 @@ export default function EditAppSettingsModal(props: EditAppSettingsModalProps) {
       onAction={onAction}
       content={
         <form>
-          <TextField label="Application ID" value={applicationId} onChange={onChange} />
+          <TextField label="Application ID" value={inputValue} onChange={onChange} />
         </form>
       }
       actions={[{ title: "Save", id: SAVE_ACTION_ID }]}
