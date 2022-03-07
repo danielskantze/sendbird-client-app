@@ -1,17 +1,10 @@
 import React, { useContext, useEffect, useState } from 'react';
 import Button from '../atoms/Button';
 import ModalDialog from './ModalDialog';
-import {
-  UserRepository,
-  setUsers as updateUsers,
-  selector as usersSettingsSeleector,
-  UserData,
-  getUserData,
-} from '../../store/slices/userSettings';
-import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import TextField from '../atoms/TextField';
 import { cssCl } from '../../util/styling';
 import { SharedServices, SharedServicesContext } from '../../appcontext';
+import { UserData, UsersContext } from '../../store/contexts/users';
 
 let lastAdded: string = null;
 
@@ -96,9 +89,8 @@ function AddRow(props: AddRowProps) {
 }
 
 export default function EditUsersModal(props: EditUsersModalProps) {
-  const dispatch = useAppDispatch();
-  const usersSettings: UserRepository = useAppSelector(usersSettingsSeleector);
-  const [users, setUsers] = useState(usersSettings.users);
+  const { users, getUserData, setUsers } = useContext(UsersContext)
+  const [ _users, _setUsers ] = useState(users);
   const [addType, setAddType] = useState(AddType.New);
   const sharedServices = useContext(SharedServicesContext) as SharedServices;
   const { chat } = sharedServices;
@@ -106,10 +98,10 @@ export default function EditUsersModal(props: EditUsersModalProps) {
   const onAction = (id: string) => {
     switch (id) {
       case SAVE_ACTION_ID:
-        dispatch(updateUsers(users));
-        if (!lastAdded && !getUserData(props.selectedUserId, users)) {
-          if (users.length > 0) {
-            props.onSave(users[users.length - 1].userId);
+        setUsers(_users);
+        if (!lastAdded && !getUserData(props.selectedUserId)) {
+          if (_users.length > 0) {
+            props.onSave(_users[_users.length - 1].userId);
           } else {
             props.onSave(null);
           }
@@ -123,13 +115,13 @@ export default function EditUsersModal(props: EditUsersModalProps) {
   const onAddUser = (values:Array<string>) => {
     const [ nickname ] = values;
     const userData:UserData = {userId: chat.generateUserId(nickname), name: nickname };
-    if (getUserData(userData.userId, users)) {
+    if (getUserData(userData.userId)) {
       // user already exists - bail
       // TODO: Show error message
       return;
     }
     lastAdded = userData.userId;
-    setUsers(users.concat([userData]));
+    _setUsers(_users.concat([userData]));
   };
 
   const onAddExisting = async (values:Array<string>) => {
@@ -141,7 +133,7 @@ export default function EditUsersModal(props: EditUsersModalProps) {
       // TODO: Show error message
       return;
     }
-    if (getUserData(userInfo.userId, users)) {
+    if (getUserData(userInfo.userId)) {
       // user already exists - bail
       // TODO: Show error message
       return;
@@ -150,7 +142,7 @@ export default function EditUsersModal(props: EditUsersModalProps) {
     userData.userId = userInfo.userId;
     userData.token = token;
     lastAdded = userData.userId;
-    setUsers(users.concat([userData]));
+    _setUsers(_users.concat([userData]));
   };
 
   const createDeleteUserFn = (user: UserData) => {
@@ -158,7 +150,7 @@ export default function EditUsersModal(props: EditUsersModalProps) {
       if (user.userId === lastAdded) {
         lastAdded = null;
       }
-      setUsers(users.filter(n => n !== user));
+      _setUsers(_users.filter(n => n !== user));
     };
   };
 
@@ -181,7 +173,7 @@ export default function EditUsersModal(props: EditUsersModalProps) {
       content={
         <div>
           <ul className="table edit-list edit-channels-items">
-            {users.map(c => (
+            {_users.map(c => (
               <ListingRow key={c.userId} user={c} onDeleteItem={createDeleteUserFn(c)} />
             ))}
           </ul>

@@ -1,23 +1,23 @@
 import React, { useContext, useState } from 'react';
-import { useAppDispatch, useAppSelector } from '../store/hooks';
 import { SharedServices, SharedServicesContext } from '../appcontext';
-import { ConnectionStatus } from '../store/slices/uiState';
-import * as stateMessages from '../store/slices/messages';
-import * as stateUi from '../store/slices/uiState';
 import Button from './atoms/Button';
 import LayoutColumn from './atoms/LayoutColumn';
 import LayoutRow from './atoms/LayoutRow';
 import { Message } from '../services/chat';
 import * as flashMessages from '../store/flashMessages';
+import { ConnectionStatus, UIContext } from '../store/contexts/ui';
+import { MessagesContext } from '../store/contexts/messages';
 
 export default function WriteArea() {
-  const dispatch = useAppDispatch();
-  const uiState: stateUi.UIState = useAppSelector(stateUi.selector);
   const sharedServices = useContext(SharedServicesContext) as SharedServices;
   const [text, setText] = useState('');
+  const {connectionStatus, addFlashMessage } = useContext(UIContext);
+  const { addMessage } = useContext(MessagesContext);
+  console.log({connectionStatus});
 
   const canSend = () => {
-    return uiState.connectionStatus === ConnectionStatus.JoinedChannel &&
+
+    return connectionStatus === ConnectionStatus.JoinedChannel &&
       text.length > 0;
   }
 
@@ -30,10 +30,10 @@ export default function WriteArea() {
     if (canSend()) {
       chat.sendMessage(text)
         .then((message:Message) => {
-          dispatch(stateMessages.addMessage(message));
+          addMessage(message);
         })
         .catch((e) => {
-          dispatch(stateUi.addFlashMessage(flashMessages.fromError(e, 'send-error')));
+          addFlashMessage(flashMessages.fromError(e, 'send-error'));
         });
       setText('');
     }

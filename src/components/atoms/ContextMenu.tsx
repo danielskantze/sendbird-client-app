@@ -40,12 +40,14 @@ export default function ContextMenu(props: ContextMenuItemsProps) {
     setCanHide(false);
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   function onMouseEnterClickArea(e: React.MouseEvent<HTMLElement, MouseEvent>) {
     if (canHide) {
       setIsVisible(false);
     }
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   function onMouseEnterItems(e: React.MouseEvent<HTMLElement, MouseEvent>) {
     setCanHide(true);
   }

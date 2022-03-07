@@ -1,4 +1,5 @@
 import React, { createContext, useState, FC, useEffect } from 'react';
+import { generateRandomId } from '../../services/ids';
 import { loadConfig } from '../../services/config';
 import { persistedSetterFactory } from './helpers';
 
@@ -30,10 +31,22 @@ export const SettingsProvider: FC = ({ children }) => {
   }
 
   useEffect(() => {
-    loadConfig('app', {}).then(c => {
+    loadConfig('app', {})
+    .then(c => {
+      // generate a random installationId unless it exists since before
       const settings = c as ApplicationSettings;
-      _setApplicationId(settings.applicationId);
+      console.log({settings});
+      if (!settings.installationId) {
+        return generateRandomId(8).then((r:string) => {
+          settings.installationId = r;
+          return settings;
+        });
+      }
+      return settings;
+    })
+    .then(settings => {
       _setInstallationId(settings.installationId);
+      _setApplicationId(settings.applicationId);
     });
   }, []);
 

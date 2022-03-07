@@ -1,10 +1,7 @@
 import React, { useContext, useEffect, useRef, useState } from 'react';
-import { useAppDispatch, useAppSelector } from '../store/hooks';
 import { SharedServices, SharedServicesContext } from '../appcontext';
-import * as stateUi from '../store/slices/uiState';
-import * as stateMessages from '../store/slices/messages';
+import { ConnectionStatus, UIContext } from '../store/contexts/ui';
 import { Message, PreviousListQuery, MessageEventType } from '../services/chat';
-import { ConnectionStatus } from '../store/slices/uiState';
 import * as flashMessages from '../store/flashMessages';
 
 import LayoutColumn from './atoms/LayoutColumn';
@@ -12,6 +9,7 @@ import LayoutRow from './atoms/LayoutRow';
 import Button from './atoms/Button';
 import ContextMenu, { ContextMenuItem, MenuAlign } from './atoms/ContextMenu';
 import ConfirmAction from './modals/ConfirmAction';
+import { MessagesContext } from '../store/contexts/messages';
 
 enum Action {
   None,
@@ -19,20 +17,20 @@ enum Action {
 }
 
 type EditChatMessageProps = {
-  extraClasses: Array<string>,
-  message: Message,
-  onCancel: () => void,
-  onSave:(messageId:number, text:string) => void,
+  extraClasses: Array<string>;
+  message: Message;
+  onCancel: () => void;
+  onSave: (messageId: number, text: string) => void;
 };
 
 function EditChatMessage(props: EditChatMessageProps) {
   const [inputText, setInputText] = useState(props.message.message);
-    
+
   const onSave = () => {
-    console.log("onSave", props.message.id, inputText);
+    console.log('onSave', props.message.id, inputText);
     props.onSave(props.message.id, inputText);
   };
- 
+
   const onChange = (e: React.FormEvent<HTMLTextAreaElement>) => {
     setInputText(e.currentTarget.value);
   };
@@ -42,12 +40,7 @@ function EditChatMessage(props: EditChatMessageProps) {
       <div className={['card', ...props.extraClasses].join(' ')}>
         <div className="card-body">
           <div className="form-group">
-            <textarea
-              className="form-input"
-              id="new-message"
-              rows={3}
-              onChange={onChange}
-              value={inputText}></textarea>
+            <textarea className="form-input" id="new-message" rows={3} onChange={onChange} value={inputText}></textarea>
           </div>
         </div>
       </div>
@@ -60,11 +53,11 @@ function EditChatMessage(props: EditChatMessageProps) {
 }
 
 type MessageProps = {
-  message: Message,
-  isOwner?: boolean,
-  isOperator?: boolean,
-  onDeleteItem?: (messageId: number) => void,
-  onUpdateItem?: (messageId: number, text:string) => void,
+  message: Message;
+  isOwner?: boolean;
+  isOperator?: boolean;
+  onDeleteItem?: (messageId: number) => void;
+  onUpdateItem?: (messageId: number, text: string) => void;
 };
 
 function ChatMessage(props: MessageProps) {
@@ -83,12 +76,12 @@ function ChatMessage(props: MessageProps) {
 
   const onEditCancel = () => {
     setIsEditing(false);
-  }
+  };
 
-  const onEditSave = (messageId: number, text:string) => {
+  const onEditSave = (messageId: number, text: string) => {
     setIsEditing(false);
     props.onUpdateItem(messageId, text);
-  }
+  };
 
   if (hasMenu) {
     const onMenuItemClick = (menuItem: ContextMenuItem) => {
@@ -134,7 +127,12 @@ function ChatMessage(props: MessageProps) {
         {menu}
       </div>
       {isEditing ? (
-        <EditChatMessage extraClasses={extraClasses} onCancel={onEditCancel} onSave={onEditSave} message={props.message} />
+        <EditChatMessage
+          extraClasses={extraClasses}
+          onCancel={onEditCancel}
+          onSave={onEditSave}
+          message={props.message}
+        />
       ) : (
         <div className={['card', ...extraClasses].join(' ')}>
           <div className="card-body">
@@ -153,42 +151,43 @@ type PreviousListQueryWrapper = {
 let currentAction = Action.None;
 
 export default function ChatMessages() {
-  const uiState = useAppSelector(stateUi.selector);
-  const messages = useAppSelector(stateMessages.selector);
+  const { connectionStatus, operatorIds, addFlashMessage } = useContext(UIContext);
+  const { messages, addMessage, updateMessage, deleteMessage, setMessages, clearMessages, addMessages } = useContext(MessagesContext);
   const sharedServices = useContext(SharedServicesContext) as SharedServices;
   const { chat } = sharedServices;
-  const dispatch = useAppDispatch();
   const lastElementRef = useRef(null);
   const firstElementRef = useRef(null);
   const emptyQuery: PreviousListQueryWrapper = { query: null };
   const [previousListQuery, setPreviousListQuery] = useState(emptyQuery);
   const [deleteMessageId, setDeleteMessageId] = useState(null);
-  let confirmDeleteModal:JSX.Element = null;
-  const operatorLookup = new Set(uiState.operatorIds);
+  let confirmDeleteModal: JSX.Element = null;
+  const operatorLookup = new Set(operatorIds);
+  console.log({messages});
 
-  const incomingMessageHandler = (type: MessageEventType, messageId: number, message: Message) => {
+  function incomingMessageHandler(type: MessageEventType, messageId: number, message: Message) {
+    console.log(type, messageId, message);
     switch (type) {
       case MessageEventType.Added:
-        dispatch(stateMessages.addMessage(message));
+        addMessage(message);
         break;
       case MessageEventType.Updated:
-        dispatch(stateMessages.updateMessage(message));
+        updateMessage(message);
         break;
       case MessageEventType.Deleted:
-        dispatch(stateMessages.deleteMessage(messageId));
+        deleteMessage(messageId);
         break;
     }
-  };
+  }
 
   const addMessageHandler = async () => {
     try {
       const query = chat.createPreviousListQuery();
       setPreviousListQuery({ query });
       const loadedMessages = (await chat.loadPreviousMessages(query)) as Array<Message>;
-      dispatch(stateMessages.setMessages(loadedMessages));
+      setMessages(loadedMessages);
       chat.setMessageHandler(incomingMessageHandler);
     } catch (e) {
-      dispatch(stateUi.addFlashMessage(flashMessages.fromError(e, 'load-messages-error')));
+      addFlashMessage(flashMessages.fromError(e, 'load-messages-error'));
     }
   };
 
@@ -196,15 +195,15 @@ export default function ChatMessages() {
     try {
       chat.clearMessageHandler();
       setPreviousListQuery(emptyQuery);
-      dispatch(stateMessages.clearMessages());
+      clearMessages();
     } catch (e) {
-      dispatch(stateUi.addFlashMessage(flashMessages.fromError(e, 'clear-message-handler-error')));
+      addFlashMessage(flashMessages.fromError(e, 'clear-message-handler-error'));
     }
   };
 
   const onConnectionStatusChange = () => {
     const { chat } = sharedServices;
-    switch (uiState.connectionStatus) {
+    switch (connectionStatus) {
       case ConnectionStatus.JoinedChannel:
         if (!chat.hasMessageHandler()) {
           addMessageHandler();
@@ -215,23 +214,24 @@ export default function ChatMessages() {
         break;
     }
   };
-  
-  const onDeleteItem = (messageId:number) => {
+
+  const onDeleteItem = (messageId: number) => {
     const { chat } = sharedServices;
     chat.deleteMessageWithId(messageId).catch(e => {
-      dispatch(stateUi.addFlashMessage(flashMessages.fromError(e)));
+      addFlashMessage(flashMessages.fromError(e));
     });
-  }
+  };
 
-  const onUpdateItem = (messageId: number, text:string) => {
+  const onUpdateItem = (messageId: number, text: string) => {
     const { chat } = sharedServices;
-    chat.updateUserMessageWithId(messageId, text)
-    .then((message:Message) => {
-        dispatch(stateMessages.updateMessage(message));
-    })
-    .catch(e => {
-      dispatch(stateUi.addFlashMessage(flashMessages.fromError(e)));
-    });
+    chat
+      .updateUserMessageWithId(messageId, text)
+      .then((message: Message) => {
+        updateMessage(message);
+      })
+      .catch(e => {
+        addFlashMessage(flashMessages.fromError(e));
+      });
   };
 
   const onLoadMore = () => {
@@ -241,23 +241,25 @@ export default function ChatMessages() {
     chat
       .loadPreviousMessages(query)
       .then((loadedMessages: Array<Message>) => {
-        dispatch(stateMessages.addMessages(loadedMessages));
+        addMessages(loadedMessages);
       })
       .catch(e => {
-        dispatch(stateUi.addFlashMessage(flashMessages.fromError(e, 'load-more-messages-error')));
+        addFlashMessage(flashMessages.fromError(e, 'load-more-messages-error'));
       });
   };
 
-  const canEdit = (m:Message) => {
-    return chat.userId === m.senderId
+  const canEdit = (m: Message) => {
+    return chat.userId === m.senderId;
   };
 
-  const canDelete = (m:Message) => {
-    return chat.userId === m.senderId ||
-      operatorLookup.has(chat.userId);
+  const canDelete = (m: Message) => {
+    return chat.userId === m.senderId || operatorLookup.has(chat.userId);
   };
- 
-  useEffect(onConnectionStatusChange, [uiState]);
+
+  useEffect(onConnectionStatusChange, [connectionStatus]);
+  
+  // TODO: Refactor this mess. Move integration with chat service to store
+  useEffect(() => { chat.setMessageHandler(incomingMessageHandler); }, [messages]);
   useEffect(() => {
     if (currentAction === Action.LoadMore) {
       if (firstElementRef && firstElementRef.current) {
@@ -272,7 +274,7 @@ export default function ChatMessages() {
   }, [messages]);
 
   const loadMoreButton =
-    messages.messages.length > 0 ? (
+    messages.length > 0 ? (
       <LayoutRow key={'load-more'}>
         <LayoutColumn extraClasses={['center', 'load-more']}>
           <span ref={firstElementRef}>
@@ -284,25 +286,30 @@ export default function ChatMessages() {
       ''
     );
 
-    if (deleteMessageId !== null) {
-      confirmDeleteModal = <ConfirmAction 
-        title={'Delete message?'} 
-        body={'The message will be deleted. This cannot be undone. '} 
-        onClose={() => { setDeleteMessageId(null); }} 
-        onConfirm={() => { 
-          onDeleteItem(deleteMessageId); 
-          setDeleteMessageId(null); 
-        }} />
-    }
+  if (deleteMessageId !== null) {
+    confirmDeleteModal = (
+      <ConfirmAction
+        title={'Delete message?'}
+        body={'The message will be deleted. This cannot be undone. '}
+        onClose={() => {
+          setDeleteMessageId(null);
+        }}
+        onConfirm={() => {
+          onDeleteItem(deleteMessageId);
+          setDeleteMessageId(null);
+        }}
+      />
+    );
+  }
 
   return (
     <LayoutRow>
       <LayoutColumn>
         {loadMoreButton}
-        {messages.messages.map((m: Message, i: number) => (
+        {messages.map((m: Message, i: number) => (
           <LayoutRow key={i}>
             <LayoutColumn size={11} align={operatorLookup.has(m.senderId) ? 'right' : 'left'}>
-              <span ref={i === messages.messages.length - 1 ? lastElementRef : null}>
+              <span ref={i === messages.length - 1 ? lastElementRef : null}>
                 <ChatMessage
                   message={m}
                   isOwner={chat.userId === m.senderId}
