@@ -35,7 +35,6 @@ export const SettingsProvider: FC = ({ children }) => {
     .then(c => {
       // generate a random installationId unless it exists since before
       const settings = c as ApplicationSettings;
-      console.log({settings});
       if (!settings.installationId) {
         return generateRandomId(8).then((r:string) => {
           settings.installationId = r;
@@ -46,7 +45,7 @@ export const SettingsProvider: FC = ({ children }) => {
     })
     .then(settings => {
       _setInstallationId(settings.installationId);
-      _setApplicationId(settings.applicationId);
+      _setApplicationId(settings.applicationId || initialState.applicationId);
     });
   }, []);
 

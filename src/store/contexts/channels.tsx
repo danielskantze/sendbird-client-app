@@ -12,7 +12,7 @@ export interface PersistedState {
 }
 
 export interface ChannelSettings extends PersistedState {
-  setChannels?: (items:Array<ChannelDescriptor>) => void
+  setChannels?: (items: Array<ChannelDescriptor>) => void;
 }
 
 const initialState: ChannelSettings = {
@@ -34,8 +34,10 @@ export const ChannelsContextProvider: FC = ({ children }) => {
 
   useEffect(() => {
     loadConfig('channels', {}).then(c => {
-      const state = c as PersistedState;
-      _setChannels(state.channels);
+      if (c) {
+        const state = c as PersistedState;
+        _setChannels(state.channels || initialState.channels);
+      }
     });
   }, []);
 
@@ -43,7 +45,7 @@ export const ChannelsContextProvider: FC = ({ children }) => {
     <ChannelsContext.Provider
       value={{
         channels,
-        setChannels: persistedSetterFn({channels}, _setChannels)
+        setChannels: persistedSetterFn({ channels }, _setChannels),
       }}>
       {children}
     </ChannelsContext.Provider>

@@ -36,7 +36,9 @@ export const UsersContextProvider: FC = ({ children }) => {
   useEffect(() => {
     loadConfig('users', {}).then((state: UserRepository) => {
       console.log('users', state);
-      _setUsers(state.users);
+      if (state) {
+        _setUsers(state.users || initialState.users);
+      }
     });
   }, []);
 
@@ -45,7 +47,7 @@ export const UsersContextProvider: FC = ({ children }) => {
       value={{
         users,
         setUsers: persistedSetterFn({ users }, _setUsers),
-        getUserData: (userId:string) => users.find(n => n.userId === userId),
+        getUserData: (userId: string) => users.find(n => n.userId === userId),
       }}>
       {children}
     </UsersContext.Provider>

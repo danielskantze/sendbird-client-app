@@ -74,9 +74,11 @@ export const UIContextProvider: FC = ({ children }) => {
 
   useEffect(() => {
     loadConfig('ui', {}).then(c => {
-      const state = c as PersistedState;
-      _setSelectedChannelUrl(state.selectedChannelUrl);
-      _setelectedUserId(state.selectedUserId);
+      if (c) {
+        const state = c as PersistedState;
+        _setSelectedChannelUrl(state.selectedChannelUrl || initialState.selectedChannelUrl);
+        _setelectedUserId(state.selectedUserId || initialState.selectedUserId);
+      }
     });
   }, []);
 
